@@ -1,131 +1,283 @@
-function QuestTracker() {
-  const [quests, setQuests] = React.useState(() => {
-    const saved = localStorage.getItem("quests");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [formMode, setFormMode] = React.useState("none"); // 'none', 'add', or {id: questId}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quest Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
-  React.useEffect(() => {
-    localStorage.setItem("quests", JSON.stringify(quests));
-  }, [quests]);
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  const addQuest = () => setFormMode("add");
-  const editQuest = (id) => setFormMode({ id });
-  const cancelForm = () => setFormMode("none");
+  <!-- React and ReactDOM 17 from jsDelivr -->
+  <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js" crossorigin></script>
 
-  const handleFormSubmit = (formData) => {
-    if (formMode === "add") {
-      setQuests([...quests, { id: Date.now(), ...formData }]);
-    } else if (formMode.id) {
-      setQuests(quests.map((q) => (q.id === formMode.id ? { ...q, ...formData } : q)));
+  <!-- Babel for inline JSX -->
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <!-- D&D-ish font: Cinzel -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Cinzel', serif;
+      background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
+      background-blend-mode: overlay;
+      color: #4a2c0f;
     }
-    setFormMode("none");
-  };
 
-  const removeQuest = (id) => setQuests(quests.filter((q) => q.id !== id));
+    .dark {
+      background-color: #1a1a1a;
+      color: #fafafa;
+      background-blend-mode: normal;
+    }
 
-  return (
-    <div className="mt-4">
-      <h3 className="text-lg font-bold mb-2">Quest Tracker</h3>
-      <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
-      <button
-        className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800 mb-2"
-        onClick={addQuest}
-      >
-        Add New Quest
-      </button>
-      {formMode === "add" && <QuestForm onSubmit={handleFormSubmit} onCancel={cancelForm} />}
-      <ul className="space-y-2">
-        {quests.map((quest) => (
-          <li key={quest.id} className="bg-white p-2 rounded shadow">
-            <div className="flex justify-between items-center">
-              <span>{quest.name} - {quest.status}</span>
-              <div>
-                <button
-                  className="text-blue-500 hover:text-blue-700 mr-2"
-                  onClick={() => editQuest(quest.id)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => removeQuest(quest.id)}
-                >
-                  Delete
-                </button>
-              </div>
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f5e8c7;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: #8b5a2b;
+      border-radius: 20px;
+      border: 3px solid #f5e8c7;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+  </style>
+</head>
+
+<body class="text-gray-800">
+  <div id="root" class="p-4"></div>
+
+  <script type="text/babel">
+    // QuestForm Component
+    function QuestForm({ initialQuest, onSubmit, onCancel }) {
+      const [name, setName] = React.useState(initialQuest ? initialQuest.name : '');
+      const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : '');
+      const [reward, setReward] = React.useState(initialQuest ? initialQuest.reward : '');
+      const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : 'Medium');
+      const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : 'Not Started');
+      const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : '');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!name.trim()) {
+          alert('Quest name is required');
+          return;
+        }
+        onSubmit({ name, description, reward, difficulty, status, notes });
+      };
+
+      return (
+        <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-gray-50 rounded">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border p-1 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full border p-1 rounded"
+              placeholder="Enter quest description"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Reward</label>
+            <input
+              type="text"
+              value={reward}
+              onChange={(e) => setReward(e.target.value)}
+              className="w-full border p-1 rounded"
+              placeholder="Enter quest reward"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Difficulty</label>
+            <select
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+              className="w-full border p-1 rounded"
+            >
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+              <option value="Legendary">Legendary</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full border p-1 rounded"
+            >
+              <option value="Not Started">Not Started</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full border p-1 rounded"
+              placeholder="Additional quest notes"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      );
+    }
+
+    // QuestTracker Component
+    function QuestTracker() {
+      const [quests, setQuests] = React.useState(() => {
+        try {
+          const saved = localStorage.getItem('quests');
+          return saved ? JSON.parse(saved) : [];
+        } catch (err) {
+          console.error('Failed to load quests from localStorage', err);
+          return [];
+        }
+      });
+      const [activeQuestId, setActiveQuestId] = React.useState(null);
+      const [formMode, setFormMode] = React.useState('none'); // 'none', 'add', or questId
+
+      React.useEffect(() => {
+        localStorage.setItem('quests', JSON.stringify(quests));
+      }, [quests]);
+
+      const addQuest = () => setFormMode('add');
+      const editQuest = (id) => setFormMode(id);
+      const cancelForm = () => setFormMode('none');
+
+      const handleFormSubmit = (formData) => {
+        if (formMode === 'add') {
+          const newQuest = { id: Date.now(), ...formData };
+          setQuests([...quests, newQuest]);
+        } else if (typeof formMode === 'number') {
+          setQuests(quests.map((q) => (q.id === formMode ? { ...q, ...formData } : q)));
+        }
+        setFormMode('none');
+      };
+
+      const removeQuest = (id) => {
+        setQuests(quests.filter((q) => q.id !== id));
+        if (activeQuestId === id) setActiveQuestId(null);
+      };
+
+      const rollForInitiative = () => {
+        if (quests.length > 0) {
+          const randomIndex = Math.floor(Math.random() * quests.length);
+          setActiveQuestId(quests[randomIndex].id);
+        }
+      };
+
+      return (
+        <div className="container mx-auto p-4 space-y-4">
+          <div className="bg-gray-100 p-4 rounded-lg">
+            <h2 className="text-xl font-bold mb-2">Quest Tracker</h2>
+            <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
+            <div className="flex gap-2 mb-4">
+              <button
+                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+                onClick={addQuest}
+              >
+                Add New Quest
+              </button>
+              <button
+                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+                onClick={rollForInitiative}
+                disabled={quests.length === 0}
+              >
+                Roll for Initiative
+              </button>
             </div>
-            {formMode.id === quest.id && (
-              <QuestForm quest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} />
+            {formMode === 'add' && (
+              <QuestForm
+                initialQuest={null}
+                onSubmit={handleFormSubmit}
+                onCancel={cancelForm}
+              />
             )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function QuestForm({ quest, onSubmit, onCancel }) {
-  const [name, setName] = React.useState(quest ? quest.name : "");
-  const [description, setDescription] = React.useState(quest ? quest.description : "");
-  const [status, setStatus] = React.useState(quest ? quest.status : "active");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      alert("Quest name is required");
-      return;
+            <ul className="space-y-2">
+              {quests.map((quest) => (
+                <li
+                  key={quest.id}
+                  className={`bg-white p-2 rounded shadow ${
+                    quest.id === activeQuestId ? 'border-2 border-amber-500' : ''
+                  }`}
+                >
+                  {formMode === quest.id ? (
+                    <QuestForm
+                      initialQuest={quest}
+                      onSubmit={handleFormSubmit}
+                      onCancel={cancelForm}
+                    />
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <span>
+                        {quest.name} - {quest.difficulty} - {quest.status}
+                      </span>
+                      <div>
+                        <button
+                          className="text-blue-500 hover:text-blue-700 mr-2"
+                          onClick={() => editQuest(quest.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => removeQuest(quest.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {quests.length === 0 && (
+              <p className="text-sm text-gray-500">No quests yet. Add one to get started!</p>
+            )}
+          </div>
+        </div>
+      );
     }
-    onSubmit({ name, description, status });
-  };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-gray-50 rounded">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Name</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border p-1 rounded"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full border p-1 rounded"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Status</label>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="w-full border p-1 rounded"
-        >
-          <option value="active">Active</option>
-          <option value="completed">Completed</option>
-          <option value="failed">Failed</option>
-        </select>
-      </div>
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
+    // Render the QuestTracker component
+    ReactDOM.render(<QuestTracker />, document.getElementById('root'));
+  </script>
+</body>
+</html>
