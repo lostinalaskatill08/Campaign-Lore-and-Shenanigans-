@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Quest Tracker</title>
+  <title>Campaign Notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="mobile-web-app-capable" content="yes" />
 
@@ -16,7 +16,7 @@
   <!-- Babel for inline JSX -->
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
-  <!-- D&D-ish font: Cinzel -->
+  <!-- D&D-inspired font -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet" />
 
   <style>
@@ -53,22 +53,145 @@
 </head>
 
 <body class="text-gray-800">
-  <div id="root" class="p-4"></div>
+  <div id="root"></div>
 
   <script type="text/babel">
+    // Dark Mode Toggle Component
+    function DarkModeToggle() {
+      const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem("darkMode") === "true");
+
+      React.useEffect(() => {
+        if (darkMode) document.body.classList.add("dark");
+        else document.body.classList.remove("dark");
+        localStorage.setItem("darkMode", darkMode);
+      }, [darkMode]);
+
+      return (
+        <button
+          className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+          onClick={() => setDarkMode(!darkMode)}
+        >
+          {darkMode ? "Light Mode" : "Dark Mode"}
+        </button>
+      );
+    }
+
+    // LocalStorage Backup Function
+    function backupLocalStorage() {
+      const data = {
+        loreText: localStorage.getItem("loreText"),
+        campaignNotes: localStorage.getItem("campaignNotes"),
+        shenanigansText: localStorage.getItem("shenanigansText"),
+        quests: localStorage.getItem("quests"),
+        darkMode: localStorage.getItem("darkMode"),
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "campaign_backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // LocalStorage Restore Function
+    function restoreLocalStorage(files) {
+      if (!files || !files.length) return;
+      const file = files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          for (const key in data) {
+            if (data[key] !== null && data[key] !== undefined) {
+              localStorage.setItem(key, data[key]);
+            }
+          }
+          alert("LocalStorage restored. Please refresh the page.");
+        } catch (err) {
+          console.error(err);
+          alert("Failed to restore. Invalid JSON?");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Lore Component
+    function Lore() {
+      const [loreText, setLoreText] = React.useState(() => localStorage.getItem("loreText") || "");
+
+      React.useEffect(() => {
+        localStorage.setItem("loreText", loreText);
+      }, [loreText]);
+
+      return (
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">Lore</h2>
+          <textarea
+            value={loreText}
+            onChange={(e) => setLoreText(e.target.value)}
+            className="w-full border p-2 rounded bg-white text-gray-800"
+            placeholder="Enter your world's lore here..."
+          />
+        </div>
+      );
+    }
+
+    // Campaign Notes Component
+    function CampaignNotes() {
+      const [notesText, setNotesText] = React.useState(() => localStorage.getItem("campaignNotes") || "");
+
+      React.useEffect(() => {
+        localStorage.setItem("campaignNotes", notesText);
+      }, [notesText]);
+
+      return (
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">Campaign Notes</h2>
+          <textarea
+            value={notesText}
+            onChange={(e) => setNotesText(e.target.value)}
+            className="w-full border p-2 rounded bg-white text-gray-800"
+            placeholder="Record your campaign notes here..."
+          />
+        </div>
+      );
+    }
+
+    // Shenanigans Component
+    function Shenanigans() {
+      const [shenanigansText, setShenanigansText] = React.useState(() => localStorage.getItem("shenanigansText") || "");
+
+      React.useEffect(() => {
+        localStorage.setItem("shenanigansText", shenanigansText);
+      }, [shenanigansText]);
+
+      return (
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">Shenanigans</h2>
+          <textarea
+            value={shenanigansText}
+            onChange={(e) => setShenanigansText(e.target.value)}
+            className="w-full border p-2 rounded bg-white text-gray-800"
+            placeholder="Note down memorable shenanigans here..."
+          />
+        </div>
+      );
+    }
+
     // QuestForm Component
     function QuestForm({ initialQuest, onSubmit, onCancel }) {
-      const [name, setName] = React.useState(initialQuest ? initialQuest.name : '');
-      const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : '');
-      const [reward, setReward] = React.useState(initialQuest ? initialQuest.reward : '');
-      const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : 'Medium');
-      const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : 'Not Started');
-      const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : '');
+      const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
+      const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : "");
+      const [reward, setReward] = React.useState(initialQuest ? initialQuest.reward : "");
+      const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : "Medium");
+      const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : "Not Started");
+      const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : "");
 
       const handleSubmit = (e) => {
         e.preventDefault();
         if (!name.trim()) {
-          alert('Quest name is required');
+          alert("Quest name is required");
           return;
         }
         onSubmit({ name, description, reward, difficulty, status, notes });
@@ -162,33 +285,28 @@
     // QuestTracker Component
     function QuestTracker() {
       const [quests, setQuests] = React.useState(() => {
-        try {
-          const saved = localStorage.getItem('quests');
-          return saved ? JSON.parse(saved) : [];
-        } catch (err) {
-          console.error('Failed to load quests from localStorage', err);
-          return [];
-        }
+        const saved = localStorage.getItem("quests");
+        return saved ? JSON.parse(saved) : [];
       });
       const [activeQuestId, setActiveQuestId] = React.useState(null);
-      const [formMode, setFormMode] = React.useState('none'); // 'none', 'add', or questId
+      const [formMode, setFormMode] = React.useState("none"); // 'none', 'add', or questId
 
       React.useEffect(() => {
-        localStorage.setItem('quests', JSON.stringify(quests));
+        localStorage.setItem("quests", JSON.stringify(quests));
       }, [quests]);
 
-      const addQuest = () => setFormMode('add');
+      const addQuest = () => setFormMode("add");
       const editQuest = (id) => setFormMode(id);
-      const cancelForm = () => setFormMode('none');
+      const cancelForm = () => setFormMode("none");
 
       const handleFormSubmit = (formData) => {
-        if (formMode === 'add') {
+        if (formMode === "add") {
           const newQuest = { id: Date.now(), ...formData };
           setQuests([...quests, newQuest]);
-        } else if (typeof formMode === 'number') {
+        } else if (typeof formMode === "number") {
           setQuests(quests.map((q) => (q.id === formMode ? { ...q, ...formData } : q)));
         }
-        setFormMode('none');
+        setFormMode("none");
       };
 
       const removeQuest = (id) => {
@@ -204,80 +322,109 @@
       };
 
       return (
-        <div className="container mx-auto p-4 space-y-4">
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <h2 className="text-xl font-bold mb-2">Quest Tracker</h2>
-            <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
-            <div className="flex gap-2 mb-4">
-              <button
-                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
-                onClick={addQuest}
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">Quest Tracker</h2>
+          <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
+          <div className="flex gap-2 mb-4">
+            <button
+              className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+              onClick={addQuest}
+            >
+              Add New Quest
+            </button>
+            <button
+              className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+              onClick={rollForInitiative}
+              disabled={quests.length === 0}
+            >
+              Roll for Initiative
+            </button>
+          </div>
+          {formMode === "add" && (
+            <QuestForm
+              initialQuest={null}
+              onSubmit={handleFormSubmit}
+              onCancel={cancelForm}
+            />
+          )}
+          <ul className="space-y-2">
+            {quests.map((quest) => (
+              <li
+                key={quest.id}
+                className={`bg-white p-2 rounded shadow ${
+                  quest.id === activeQuestId ? "border-2 border-amber-500" : ""
+                }`}
               >
-                Add New Quest
-              </button>
-              <button
-                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
-                onClick={rollForInitiative}
-                disabled={quests.length === 0}
-              >
-                Roll for Initiative
-              </button>
-            </div>
-            {formMode === 'add' && (
-              <QuestForm
-                initialQuest={null}
-                onSubmit={handleFormSubmit}
-                onCancel={cancelForm}
-              />
-            )}
-            <ul className="space-y-2">
-              {quests.map((quest) => (
-                <li
-                  key={quest.id}
-                  className={`bg-white p-2 rounded shadow ${
-                    quest.id === activeQuestId ? 'border-2 border-amber-500' : ''
-                  }`}
-                >
-                  {formMode === quest.id ? (
-                    <QuestForm
-                      initialQuest={quest}
-                      onSubmit={handleFormSubmit}
-                      onCancel={cancelForm}
-                    />
-                  ) : (
-                    <div className="flex justify-between items-center">
-                      <span>
-                        {quest.name} - {quest.difficulty} - {quest.status}
-                      </span>
-                      <div>
-                        <button
-                          className="text-blue-500 hover:text-blue-700 mr-2"
-                          onClick={() => editQuest(quest.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => removeQuest(quest.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
+                {formMode === quest.id ? (
+                  <QuestForm
+                    initialQuest={quest}
+                    onSubmit={handleFormSubmit}
+                    onCancel={cancelForm}
+                  />
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <span>
+                      {quest.name} - {quest.difficulty} - {quest.status}
+                    </span>
+                    <div>
+                      <button
+                        className="text-blue-500 hover:text-blue-700 mr-2"
+                        onClick={() => editQuest(quest.id)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="text-red-500 hover:text-red-700"
+                        onClick={() => removeQuest(quest.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {quests.length === 0 && (
-              <p className="text-sm text-gray-500">No quests yet. Add one to get started!</p>
-            )}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+          {quests.length === 0 && (
+            <p className="text-sm text-gray-500">No quests yet. Add one to get started!</p>
+          )}
+        </div>
+      );
+    }
+
+    // App Component (Main Layout)
+    function App() {
+      return (
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <DarkModeToggle />
+            <div className="flex gap-2">
+              <button
+                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+                onClick={backupLocalStorage}
+              >
+                Backup LocalStorage
+              </button>
+              <input
+                type="file"
+                accept=".json"
+                onChange={(e) => restoreLocalStorage(e.target.files)}
+                className="border p-1 rounded"
+              />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <Lore />
+            <CampaignNotes />
+            <Shenanigans />
+            <QuestTracker />
           </div>
         </div>
       );
     }
 
-    // Render the QuestTracker component
-    ReactDOM.render(<QuestTracker />, document.getElementById('root'));
+    // Render the App
+    ReactDOM.render(<App />, document.getElementById("root"));
   </script>
 </body>
 </html>
