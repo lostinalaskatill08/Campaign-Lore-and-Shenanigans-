@@ -1,216 +1,131 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Campaign Notes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="mobile-web-app-capable" content="yes" />
+function QuestTracker() {
+  const [quests, setQuests] = React.useState(() => {
+    const saved = localStorage.getItem("quests");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [formMode, setFormMode] = React.useState("none"); // 'none', 'add', or {id: questId}
 
-  <!-- Tailwind CSS (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  React.useEffect(() => {
+    localStorage.setItem("quests", JSON.stringify(quests));
+  }, [quests]);
 
-  <!-- React + ReactDOM 17 from jsDelivr -->
-  <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  const addQuest = () => setFormMode("add");
+  const editQuest = (id) => setFormMode({ id });
+  const cancelForm = () => setFormMode("none");
 
-  <!-- Babel for inline JSX -->
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
-  <!-- D&D-ish font -->
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet" />
-
-  <style>
-    body {
-      font-family: 'Cinzel', serif;
-      background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
-      background-blend-mode: overlay;
-      color: #4a2c0f;
+  const handleFormSubmit = (formData) => {
+    if (formMode === "add") {
+      setQuests([...quests, { id: Date.now(), ...formData }]);
+    } else if (formMode.id) {
+      setQuests(quests.map((q) => (q.id === formMode.id ? { ...q, ...formData } : q)));
     }
+    setFormMode("none");
+  };
 
-    .dark {
-      background-color: #1a1a1a;
-      color: #fafafa;
-      background-blend-mode: normal;
+  const removeQuest = (id) => setQuests(quests.filter((q) => q.id !== id));
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-lg font-bold mb-2">Quest Tracker</h3>
+      <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
+      <button
+        className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800 mb-2"
+        onClick={addQuest}
+      >
+        Add New Quest
+      </button>
+      {formMode === "add" && <QuestForm onSubmit={handleFormSubmit} onCancel={cancelForm} />}
+      <ul className="space-y-2">
+        {quests.map((quest) => (
+          <li key={quest.id} className="bg-white p-2 rounded shadow">
+            <div className="flex justify-between items-center">
+              <span>{quest.name} - {quest.status}</span>
+              <div>
+                <button
+                  className="text-blue-500 hover:text-blue-700 mr-2"
+                  onClick={() => editQuest(quest.id)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => removeQuest(quest.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            {formMode.id === quest.id && (
+              <QuestForm quest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} />
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function QuestForm({ quest, onSubmit, onCancel }) {
+  const [name, setName] = React.useState(quest ? quest.name : "");
+  const [description, setDescription] = React.useState(quest ? quest.description : "");
+  const [status, setStatus] = React.useState(quest ? quest.status : "active");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      alert("Quest name is required");
+      return;
     }
+    onSubmit({ name, description, status });
+  };
 
-    ::-webkit-scrollbar {
-      width: 12px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f5e8c7;
-    }
-    ::-webkit-scrollbar-thumb {
-      background-color: #8b5a2b;
-      border-radius: 20px;
-      border: 3px solid #f5e8c7;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-  </style>
-</head>
-
-<body class="text-gray-800">
-  <div id="root" class="p-4"></div>
-
-  <script type="text/babel">
-    /** Dark Mode Toggle */
-    function DarkModeToggle() {
-      const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem("darkMode") === "true");
-
-      React.useEffect(() => {
-        if (darkMode) document.body.classList.add("dark");
-        else document.body.classList.remove("dark");
-        localStorage.setItem("darkMode", darkMode);
-      }, [darkMode]);
-
-      return (
-        <button className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800" onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? "Light Mode" : "Dark Mode"}
+  return (
+    <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-gray-50 rounded">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full border p-1 rounded"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Description</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full border p-1 rounded"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Status</label>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="w-full border p-1 rounded"
+        >
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="failed">Failed</option>
+        </select>
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+        >
+          Save
         </button>
-      );
-    }
-
-    /** LocalStorage Backup/Restore */
-    function backupLocalStorage() {
-      const data = {
-        loreText: localStorage.getItem("loreText"),
-        campaignText: localStorage.getItem("campaignText"),
-        shenanigansText: localStorage.getItem("shenanigansText"),
-        darkMode: localStorage.getItem("darkMode"),
-      };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "notes_backup.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function restoreLocalStorage(files) {
-      if (!files || !files.length) return;
-      const file = files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          for (const key in data) {
-            if (data[key] !== null && data[key] !== undefined) {
-              localStorage.setItem(key, data[key]);
-            }
-          }
-          alert("LocalStorage restored. Please refresh the page.");
-        } catch (err) {
-          console.error(err);
-          alert("Failed to restore. Invalid JSON?");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    /** NotesApp Component with Random Encounter Generator */
-    function NotesApp() {
-      const [loreText, setLoreText] = React.useState(() => localStorage.getItem("loreText") || "");
-      const [campaignText, setCampaignText] = React.useState(() => localStorage.getItem("campaignText") || "");
-      const [shenanigansText, setShenanigansText] = React.useState(() => localStorage.getItem("shenanigansText") || "");
-      const [encounter, setEncounter] = React.useState({ npc: "", location: "", situation: "" });
-
-      React.useEffect(() => {
-        localStorage.setItem("loreText", loreText);
-        localStorage.setItem("campaignText", campaignText);
-        localStorage.setItem("shenanigansText", shenanigansText);
-      }, [loreText, campaignText, shenanigansText]);
-
-      const npcs = [
-        "a grizzled mercenary", "a mysterious cloaked figure", "an eccentric alchemist",
-        "a wandering bard", "a cunning thief", "a battle-weary paladin"
-      ];
-      const locations = [
-        "a misty forest glade", "a crumbling ancient ruin", "a bustling tavern",
-        "a windswept mountain pass", "a shadowy underground lair", "a cursed village"
-      ];
-      const situations = [
-        "seeking a lost artifact", "fleeing from a pursuing beast", "offering a cryptic warning",
-        "demanding a duel of honor", "trading rare magical goods", "lost and asking for directions"
-      ];
-
-      function generateEncounter() {
-        const randomNpc = npcs[Math.floor(Math.random() * npcs.length)];
-        const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-        const randomSituation = situations[Math.floor(Math.random() * situations.length)];
-        setEncounter({
-          npc: randomNpc,
-          location: randomLocation,
-          situation: randomSituation
-        });
-      }
-
-      return (
-        <div className="container mx-auto p-4 space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <DarkModeToggle />
-            <div className="flex gap-2">
-              <button className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800 text-sm" onClick={backupLocalStorage}>Backup LocalStorage</button>
-              <input type="file" accept=".json" onChange={(e) => restoreLocalStorage(e.target.files)} className="border p-1 rounded text-sm" id="restore-backup" />
-            </div>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-lg space-y-6">
-            <h2 className="text-xl font-bold mb-2">Campaign Notes</h2>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Lore</label>
-              <textarea
-                value={loreText}
-                onChange={(e) => setLoreText(e.target.value)}
-                className="w-full border p-2 rounded bg-white text-gray-800"
-                placeholder="Enter your world's lore here..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Notes</label>
-              <textarea
-                value={campaignText}
-                onChange={(e) => setCampaignText(e.target.value)}
-                className="w-full border p-2 rounded bg-white text-gray-800"
-                placeholder="Record your campaign notes here..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Shenanigans</label>
-              <textarea
-                value={shenanigansText}
-                onChange={(e) => setShenanigansText(e.target.value)}
-                className="w-full border p-2 rounded bg-white text-gray-800"
-                placeholder="Note down memorable shenanigans here..."
-              />
-            </div>
-
-            <div className="mt-4">
-              <h3 className="text-lg font-bold mb-2">Random Encounter Generator</h3>
-              <button
-                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800 mb-2"
-                onClick={generateEncounter}
-              >
-                Roll the Dice
-              </button>
-              <p className="text-sm text-gray-700">
-                {encounter.npc && encounter.location && encounter.situation ? 
-                  `You encounter ${encounter.npc} in ${encounter.location}, ${encounter.situation}.` :
-                  "Click 'Roll the Dice' to generate a random encounter!"}
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    ReactDOM.render(<NotesApp />, document.getElementById("root"));
-  </script>
-</body>
-</html>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
