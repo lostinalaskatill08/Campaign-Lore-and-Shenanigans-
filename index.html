@@ -282,13 +282,12 @@
       );
     }
 
-    // QuestTracker Component
+    // QuestTracker Component (without Roll for Initiative)
     function QuestTracker() {
       const [quests, setQuests] = React.useState(() => {
         const saved = localStorage.getItem("quests");
         return saved ? JSON.parse(saved) : [];
       });
-      const [activeQuestId, setActiveQuestId] = React.useState(null);
       const [formMode, setFormMode] = React.useState("none"); // 'none', 'add', or questId
 
       React.useEffect(() => {
@@ -311,33 +310,18 @@
 
       const removeQuest = (id) => {
         setQuests(quests.filter((q) => q.id !== id));
-        if (activeQuestId === id) setActiveQuestId(null);
-      };
-
-      const rollForInitiative = () => {
-        if (quests.length > 0) {
-          const randomIndex = Math.floor(Math.random() * quests.length);
-          setActiveQuestId(quests[randomIndex].id);
-        }
       };
 
       return (
         <div className="bg-gray-100 p-4 rounded-lg">
           <h2 className="text-xl font-bold mb-2">Quest Tracker</h2>
           <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
-          <div className="flex gap-2 mb-4">
+          <div className="mb-4">
             <button
               className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
               onClick={addQuest}
             >
               Add New Quest
-            </button>
-            <button
-              className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
-              onClick={rollForInitiative}
-              disabled={quests.length === 0}
-            >
-              Roll for Initiative
             </button>
           </div>
           {formMode === "add" && (
@@ -351,9 +335,7 @@
             {quests.map((quest) => (
               <li
                 key={quest.id}
-                className={`bg-white p-2 rounded shadow ${
-                  quest.id === activeQuestId ? "border-2 border-amber-500" : ""
-                }`}
+                className="bg-white p-2 rounded shadow"
               >
                 {formMode === quest.id ? (
                   <QuestForm
