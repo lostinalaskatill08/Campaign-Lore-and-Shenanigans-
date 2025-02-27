@@ -26,13 +26,11 @@
       background-blend-mode: overlay;
       color: #4a2c0f;
     }
-
     .dark {
       background-color: #1a1a1a;
       color: #fafafa;
       background-blend-mode: normal;
     }
-
     ::-webkit-scrollbar {
       width: 12px;
     }
@@ -44,7 +42,6 @@
       border-radius: 20px;
       border: 3px solid #f5e8c7;
     }
-
     textarea {
       resize: vertical;
       min-height: 100px;
@@ -114,6 +111,23 @@
         }
       };
       reader.readAsText(file);
+    }
+
+    // Copy for Prompt Function
+    function copyForPrompt() {
+      const data = {
+        lore: localStorage.getItem("loreText") || "",
+        campaignNotes: localStorage.getItem("campaignNotes") || "",
+        shenanigans: localStorage.getItem("shenanigansText") || "",
+        quests: JSON.parse(localStorage.getItem("quests") || "[]"),
+      };
+      const jsonString = JSON.stringify(data, null, 2);
+      navigator.clipboard.writeText(jsonString).then(() => {
+        alert("Data copied to clipboard!");
+      }).catch((err) => {
+        console.error("Failed to copy: ", err);
+        alert("Failed to copy data to clipboard.");
+      });
     }
 
     // Lore Component
@@ -282,13 +296,13 @@
       );
     }
 
-    // QuestTracker Component (without Roll for Initiative)
+    // QuestTracker Component
     function QuestTracker() {
       const [quests, setQuests] = React.useState(() => {
         const saved = localStorage.getItem("quests");
         return saved ? JSON.parse(saved) : [];
       });
-      const [formMode, setFormMode] = React.useState("none"); // 'none', 'add', or questId
+      const [formMode, setFormMode] = React.useState("none");
 
       React.useEffect(() => {
         localStorage.setItem("quests", JSON.stringify(quests));
@@ -333,10 +347,7 @@
           )}
           <ul className="space-y-2">
             {quests.map((quest) => (
-              <li
-                key={quest.id}
-                className="bg-white p-2 rounded shadow"
-              >
+              <li key={quest.id} className="bg-white p-2 rounded shadow">
                 {formMode === quest.id ? (
                   <QuestForm
                     initialQuest={quest}
@@ -374,7 +385,7 @@
       );
     }
 
-    // App Component (Main Layout)
+    // App Component
     function App() {
       return (
         <div className="p-4">
@@ -386,6 +397,12 @@
                 onClick={backupLocalStorage}
               >
                 Backup LocalStorage
+              </button>
+              <button
+                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+                onClick={copyForPrompt}
+              >
+                Copy for Prompt
               </button>
               <input
                 type="file"
