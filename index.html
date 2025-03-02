@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <title>Campaign Notes with Forced LTR</title>
+  <title>Campaign Notes with Scroll Design</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,15 +12,19 @@
   <!-- Babel for inline JSX -->
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
 
   <style>
     body {
-      font-family: 'Cinzel', serif;
+      font-family: 'Cormorant Garamond', serif;
       background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
       background-blend-mode: overlay;
       color: #4a2c0f;
-      direction: ltr; /* Force LTR in the body as well */
+      direction: ltr;
+      font-size: 1.1rem;
+    }
+    h1, h2, h3, h4, button, .section-header {
+      font-family: 'Cinzel', serif;
     }
     .dark {
       background-color: #1a1a1a;
@@ -49,64 +53,269 @@
     }
     .btn-dnd:hover {
       background-color: #6d0101;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .section-header {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-weight: bold;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
       color: #4a2c0f;
+      text-align: center;
+      position: relative;
+    }
+    .section-header::after {
+      content: "";
+      display: block;
+      height: 2px;
+      background-image: linear-gradient(to right, transparent, #8b5a2b, transparent);
+      margin-top: 0.25rem;
     }
     .note-container {
       background-color: #f9efd4;
-      padding: 1rem;
+      padding: 1.5rem;
       border-radius: 0.5rem;
-      box-shadow: 0 0 10px rgba(0,0,0,0.15);
-      margin-bottom: 1rem;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
     }
+    
+    /* Scroll styling */
+    .scroll-container {
+      position: relative;
+      margin: 1.5rem 0;
+      background-color: #f9efd4;
+      border-radius: 0px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+      overflow: visible;
+    }
+    
+    .scroll-container::before,
+    .scroll-container::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 35px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 60' preserveAspectRatio='none'%3E%3Cpath fill='%23e0d2b0' d='M0,0 C250,60 750,60 1000,0 L1000,60 L0,60 Z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      z-index: 5;
+    }
+    
+    .scroll-container::before {
+      top: -20px;
+      transform: rotate(180deg);
+    }
+    
+    .scroll-container::after {
+      bottom: -20px;
+    }
+    
+    .scroll-content {
+      padding: 2rem 1.5rem;
+      position: relative;
+      z-index: 1;
+      background-color: #f9efd4;
+      background-image: 
+        repeating-linear-gradient(#f9efd4 0px, #f9efd4 24px, #e0d2b0 25px);
+      margin: 0.5rem;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+      border-left: 1px solid #e0d2b0;
+      border-right: 1px solid #e0d2b0;
+    }
+
     .dnd-input,
     .dnd-select,
     .dnd-textarea {
       width: 100%;
-      border: 1px solid #4a3f35;
+      border: 1px solid #8b5a2b;
       border-radius: 0.375rem;
       background-color: #f9efd4;
       color: #4a2c0f;
       padding: 0.75rem;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
     }
+    
+    .dnd-input:focus,
+    .dnd-select:focus,
+    .dnd-textarea:focus {
+      outline: none;
+      border-color: #6d4c3d;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05), 0 0 5px rgba(139, 90, 43, 0.5);
+    }
+
+    .dnd-input::placeholder,
+    .dnd-textarea::placeholder {
+      color: #8b5a2b;
+      opacity: 0.6;
+    }
+    
     .dnd-textarea {
       resize: vertical;
       min-height: 100px;
+      line-height: 1.5;
     }
+    
     /* Rich Editor Toolbar & Editor Styles */
     .rich-editor-toolbar {
       display: flex;
-      gap: 0.25rem;
-      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      background-color: #e0d2b0;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    
     .rich-editor-toolbar button {
-      padding: 0.25rem 0.5rem;
+      padding: 0.35rem 0.6rem;
       font-family: 'Cinzel', serif;
-      border: 1px solid #4a3f35;
+      border: 1px solid #8b5a2b;
       background-color: #f4e4bc;
       color: #4a2c0f;
       cursor: pointer;
+      border-radius: 0.25rem;
+      transition: all 0.2s ease;
     }
+    
     .rich-editor-toolbar button:hover {
       background-color: #e0d2b7;
+      transform: translateY(-1px);
     }
+    
+    .rich-editor-toolbar button.active {
+      background-color: #8b5a2b;
+      color: #f4e4bc;
+    }
+    
     .dnd-rich-editor {
-      min-height: 120px;
-      border: 1px solid #4a3f35;
+      min-height: 150px;
+      border: 1px solid #8b5a2b;
       border-radius: 0.375rem;
       background-color: #f9efd4;
       color: #4a2c0f;
       padding: 0.75rem;
       outline: none;
       white-space: pre-wrap;
-      direction: ltr; /* Force LTR direction in the editor */
-      unicode-bidi: bidi-override; /* Override any hidden RTL markers */
-      text-align: left; /* Force text to align left */
+      direction: ltr;
+      unicode-bidi: bidi-override;
+      text-align: left;
+      line-height: 1.5;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+      overflow-y: auto;
+      max-height: 400px;
     }
+    
+    .dnd-rich-editor[placeholder]:empty:before {
+      content: attr(placeholder);
+      color: #8b5a2b;
+      opacity: 0.6;
+    }
+    
+    /* Quest item styles */
+    .quest-item {
+      background-color: #f4e4bc;
+      border: 1px solid #8b5a2b;
+      border-radius: 0.375rem;
+      transition: all 0.3s ease;
+    }
+    
+    .quest-item:hover {
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .dark .quest-item {
+      background-color: #2d2d2d;
+      border-color: #6d4c3d;
+    }
+    
+    .difficulty-easy {
+      border-left: 4px solid #4caf50;
+    }
+    
+    .difficulty-medium {
+      border-left: 4px solid #ff9800;
+    }
+    
+    .difficulty-hard {
+      border-left: 4px solid #f44336;
+    }
+    
+    .difficulty-legendary {
+      border-left: 4px solid #9c27b0;
+    }
+    
+    .status-notstarted {
+      border-right: 4px solid #9e9e9e;
+    }
+    
+    .status-inprogress {
+      border-right: 4px solid #2196f3;
+    }
+    
+    .status-completed {
+      border-right: 4px solid #4caf50;
+    }
+    
+    .status-failed {
+      border-right: 4px solid #f44336;
+    }
+    
+    .quest-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      border-bottom: 1px solid #e0d2b0;
+    }
+    
+    .quest-content {
+      padding: 0.75rem;
+    }
+    
+    .quest-label {
+      display: inline-block;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      color: #6d4c3d;
+      margin-bottom: 0.25rem;
+    }
+    
+    .quest-value {
+      margin-bottom: 0.5rem;
+    }
+    
+    /* Form field label styles */
+    .field-label {
+      display: block;
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+      color: #6d4c3d;
+    }
+    
+    /* Required field indicator */
+    .required::after {
+      content: "*";
+      color: #8B0000;
+      margin-left: 0.25rem;
+    }
+    
+    /* App title */
+    .app-title {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: bold;
+      color: #8B0000;
+      text-align: center;
+      margin: 1rem 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
   </style>
 </head>
 <body>
@@ -184,33 +393,156 @@
         });
     }
 
-    /** Simple RichEditor (Bold, Italic, Underline) */
+    /** Enhanced RichEditor **/
     function RichEditor({ value, onChange, placeholder }) {
       const editorRef = React.useRef(null);
+      const [activeFormats, setActiveFormats] = React.useState({
+        bold: false,
+        italic: false,
+        underline: false,
+        strikethrough: false,
+        ol: false,
+        ul: false,
+        alignLeft: true,
+        alignCenter: false,
+        alignRight: false,
+      });
 
-      function execCmd(cmd) {
+      React.useEffect(() => {
+        // Make sure placeholder is shown when there's no content
+        if (editorRef.current) {
+          if (!value || value === '<br>') {
+            editorRef.current.innerHTML = '';
+          }
+        }
+      }, [value]);
+
+      function execCmd(cmd, value = null) {
         if (editorRef.current) {
           editorRef.current.focus();
         }
-        document.execCommand(cmd, false, null);
+        document.execCommand(cmd, false, value);
+        
+        // Update active formats after execution
+        updateActiveFormats();
+      }
+      
+      function updateActiveFormats() {
+        setActiveFormats({
+          bold: document.queryCommandState('bold'),
+          italic: document.queryCommandState('italic'),
+          underline: document.queryCommandState('underline'),
+          strikethrough: document.queryCommandState('strikethrough'),
+          ol: document.queryCommandState('insertOrderedList'),
+          ul: document.queryCommandState('insertUnorderedList'),
+          alignLeft: document.queryCommandState('justifyLeft'),
+          alignCenter: document.queryCommandState('justifyCenter'),
+          alignRight: document.queryCommandState('justifyRight'),
+        });
       }
 
       function handleInput(e) {
+        updateActiveFormats();
         onChange(e.currentTarget.innerHTML);
       }
 
       return (
         <div>
           <div className="rich-editor-toolbar">
-            <button type="button" onClick={() => execCmd("bold")}><b>B</b></button>
-            <button type="button" onClick={() => execCmd("italic")}><i>I</i></button>
-            <button type="button" onClick={() => execCmd("underline")}><u>U</u></button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("bold")}
+              className={activeFormats.bold ? "active" : ""}
+              title="Bold"
+            >
+              <b>B</b>
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("italic")}
+              className={activeFormats.italic ? "active" : ""}
+              title="Italic"
+            >
+              <i>I</i>
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("underline")}
+              className={activeFormats.underline ? "active" : ""}
+              title="Underline"
+            >
+              <u>U</u>
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("strikethrough")}
+              className={activeFormats.strikethrough ? "active" : ""}
+              title="Strikethrough"
+            >
+              <span style={{textDecoration: "line-through"}}>S</span>
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("insertOrderedList")}
+              className={activeFormats.ol ? "active" : ""}
+              title="Numbered List"
+            >
+              1.
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("insertUnorderedList")}
+              className={activeFormats.ul ? "active" : ""}
+              title="Bullet List"
+            >
+              •
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("formatBlock", "h3")}
+              title="Heading"
+            >
+              H
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("justifyLeft")}
+              className={activeFormats.alignLeft ? "active" : ""}
+              title="Align Left"
+            >
+              ⇤
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("justifyCenter")}
+              className={activeFormats.alignCenter ? "active" : ""}
+              title="Align Center"
+            >
+              ⇔
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("justifyRight")}
+              className={activeFormats.alignRight ? "active" : ""}
+              title="Align Right"
+            >
+              ⇥
+            </button>
+            <button 
+              type="button" 
+              onClick={() => execCmd("removeFormat")}
+              title="Clear Formatting"
+            >
+              Clear
+            </button>
           </div>
           <div
             ref={editorRef}
             className="dnd-rich-editor"
             contentEditable
             onInput={handleInput}
+            onKeyUp={updateActiveFormats}
+            onMouseUp={updateActiveFormats}
             dangerouslySetInnerHTML={{ __html: value }}
             placeholder={placeholder}
           />
@@ -225,13 +557,15 @@
         localStorage.setItem("loreText", loreHTML);
       }, [loreHTML]);
       return (
-        <div className="note-container">
-          <h2 className="section-header">Lore</h2>
-          <RichEditor
-            value={loreHTML}
-            onChange={setLoreHTML}
-            placeholder="Enter your world's lore here..."
-          />
+        <div className="scroll-container">
+          <h2 className="section-header">World Lore</h2>
+          <div className="scroll-content">
+            <RichEditor
+              value={loreHTML}
+              onChange={setLoreHTML}
+              placeholder="Enter your world's lore here... (Describe the history, major events, important locations, and key figures of your world)"
+            />
+          </div>
         </div>
       );
     }
@@ -243,13 +577,15 @@
         localStorage.setItem("campaignNotes", notesHTML);
       }, [notesHTML]);
       return (
-        <div className="note-container">
+        <div className="scroll-container">
           <h2 className="section-header">Campaign Notes</h2>
-          <RichEditor
-            value={notesHTML}
-            onChange={setNotesHTML}
-            placeholder="Record your campaign notes here..."
-          />
+          <div className="scroll-content">
+            <RichEditor
+              value={notesHTML}
+              onChange={setNotesHTML}
+              placeholder="Record your campaign notes here... (Keep track of story developments, NPC interactions, and key decisions made by players)"
+            />
+          </div>
         </div>
       );
     }
@@ -261,13 +597,15 @@
         localStorage.setItem("shenanigansText", shenanigansHTML);
       }, [shenanigansHTML]);
       return (
-        <div className="note-container">
+        <div className="scroll-container">
           <h2 className="section-header">Shenanigans</h2>
-          <RichEditor
-            value={shenanigansHTML}
-            onChange={setShenanigansHTML}
-            placeholder="Note down memorable shenanigans here..."
-          />
+          <div className="scroll-content">
+            <RichEditor
+              value={shenanigansHTML}
+              onChange={setShenanigansHTML}
+              placeholder="Note down memorable shenanigans here... (Record funny moments, unexpected player actions, critical failures, and natural 20s that led to chaos)"
+            />
+          </div>
         </div>
       );
     }
@@ -291,76 +629,142 @@
       }
 
       return (
-        <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-amber-50 rounded">
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-amber-50 rounded shadow-lg border border-amber-700 dark:bg-gray-800 dark:border-gray-600">
           <div>
-            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Name</label>
+            <label className="field-label required">Quest Name</label>
             <input
               type="text"
               className="dnd-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Enter the name of this quest"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Description</label>
+            <label className="field-label">Quest Description</label>
             <textarea
               className="dnd-textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter quest description"
+              placeholder="Describe the quest objectives, who gave it, and any other relevant details"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Reward</label>
+            <label className="field-label">Reward</label>
             <input
               type="text"
               className="dnd-input"
               value={reward}
               onChange={(e) => setReward(e.target.value)}
-              placeholder="Enter quest reward"
+              placeholder="Gold, items, influence, favor, etc."
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Difficulty</label>
-            <select
-              className="dnd-input"
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value)}
-            >
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-              <option value="Legendary">Legendary</option>
-            </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">Difficulty</label>
+              <select
+                className="dnd-select"
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+              >
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+                <option value="Legendary">Legendary</option>
+              </select>
+            </div>
+            <div>
+              <label className="field-label">Status</label>
+              <select
+                className="dnd-select"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Failed">Failed</option>
+              </select>
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Status</label>
-            <select
-              className="dnd-input"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="Not Started">Not Started</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Failed">Failed</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Notes</label>
+            <label className="field-label">Quest Notes</label>
             <textarea
               className="dnd-textarea"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional quest notes"
+              placeholder="Keep track of progress, clues found, important NPCs related to this quest, etc."
             />
           </div>
-          <div className="flex gap-2">
-            <button type="submit" className="btn-dnd rounded">Save</button>
-            <button type="button" onClick={onCancel} className="btn-dnd rounded">Cancel</button>
+          <div className="flex gap-4 justify-end mt-4">
+            <button type="button" onClick={onCancel} className="btn-dnd rounded py-2 px-4">Cancel</button>
+            <button type="submit" className="btn-dnd rounded py-2 px-4">Save Quest</button>
           </div>
         </form>
+      );
+    }
+
+    /** QUEST ITEM COMPONENT **/
+    function QuestItem({ quest, onEdit, onDelete }) {
+      const [expanded, setExpanded] = React.useState(false);
+      
+      const difficultyClass = `difficulty-${quest.difficulty.toLowerCase()}`;
+      const statusClass = `status-${quest.status.toLowerCase().replace(/\s+/g, '')}`;
+      
+      return (
+        <div className={`quest-item ${difficultyClass} ${statusClass} mb-4 shadow`}>
+          <div className="quest-header cursor-pointer" onClick={() => setExpanded(!expanded)}>
+            <h3 className="font-bold">{quest.name}</h3>
+            <div className="flex gap-2 items-center">
+              <span className="text-sm px-2 py-1 bg-amber-100 rounded">{quest.status}</span>
+              <button type="button" onClick={(e) => {
+                e.stopPropagation();
+                onEdit(quest.id);
+              }} className="text-amber-800 hover:text-amber-600">
+                ✎
+              </button>
+              <button type="button" onClick={(e) => {
+                e.stopPropagation();
+                if (confirm('Are you sure you want to delete this quest?')) {
+                  onDelete(quest.id);
+                }
+              }} className="text-red-700 hover:text-red-500">
+                ✕
+              </button>
+            </div>
+          </div>
+          
+          {expanded && (
+            <div className="quest-content">
+              {quest.description && (
+                <div className="mb-3">
+                  <span className="quest-label">Description:</span>
+                  <div className="quest-value">{quest.description}</div>
+                </div>
+              )}
+              
+              {quest.reward && (
+                <div className="mb-3">
+                  <span className="quest-label">Reward:</span>
+                  <div className="quest-value">{quest.reward}</div>
+                </div>
+              )}
+              
+              <div className="mb-3">
+                <span className="quest-label">Difficulty:</span>
+                <div className="quest-value">{quest.difficulty}</div>
+              </div>
+              
+              {quest.notes && (
+                <div>
+                  <span className="quest-label">Notes:</span>
+                  <div className="quest-value">{quest.notes}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       );
     }
 
@@ -371,6 +775,7 @@
         return saved ? JSON.parse(saved) : [];
       });
       const [formMode, setFormMode] = React.useState("none");
+      const [filter, setFilter] = React.useState("all");
 
       React.useEffect(() => {
         localStorage.setItem("quests", JSON.stringify(quests));
@@ -393,39 +798,71 @@
       const removeQuest = (id) => {
         setQuests(quests.filter((q) => q.id !== id));
       };
+      
+      // Filter quests based on selected status
+      const filteredQuests = filter === 'all' 
+        ? quests 
+        : quests.filter(q => q.status === filter);
 
       return (
-        <div className="note-container">
+        <div className="scroll-container">
           <h2 className="section-header">Quest Tracker</h2>
-          <p className="text-sm mb-2" style={{ color: "#4a2c0f" }}>Manage your ongoing quests here.</p>
-          <div className="mb-4">
-            <button className="btn-dnd rounded" onClick={addQuest}>Add New Quest</button>
-          </div>
-          {formMode === "add" && (
-            <QuestForm initialQuest={null} onSubmit={handleFormSubmit} onCancel={cancelForm} />
-          )}
-          <ul className="space-y-2">
-            {quests.map((quest) => (
-              <li key={quest.id} className="p-2 rounded shadow border border-[#4a3f35]" style={{ backgroundColor: "#f9efd4" }}>
-                {formMode === quest.id ? (
-                  <QuestForm initialQuest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} />
-                ) : (
-                  <div className="flex justify-between items-center">
-                    <span style={{ color: "#4a2c0f" }}>
-                      {quest.name} — {quest.difficulty} — {quest.status}
-                    </span>
-                    <div className="flex gap-2">
-                      <button className="btn-dnd rounded" onClick={() => editQuest(quest.id)}>Edit</button>
-                      <button className="btn-dnd rounded" onClick={() => removeQuest(quest.id)}>Delete</button>
-                    </div>
+          <div className="scroll-content">
+            <div className="flex flex-wrap justify-between items-center mb-4">
+              <button className="btn-dnd rounded py-2 px-4" onClick={addQuest}>
+                Add New Quest
+              </button>
+              
+              <div className="flex items-center">
+                <label className="mr-2 font-bold text-sm">Filter:</label>
+                <select 
+                  className="dnd-select py-1 px-2" 
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                >
+                  <option value="all">All Quests</option>
+                  <option value="Not Started">Not Started</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Failed">Failed</option>
+                </select>
+              </div>
+            </div>
+            
+            {formMode === "add" && (
+              <div className="mb-6 border-2 border-amber-700 rounded p-1">
+                <QuestForm initialQuest={null} onSubmit={handleFormSubmit} onCancel={cancelForm} />
+              </div>
+            )}
+            
+            {filteredQuests.length > 0 ? (
+              <div className="space-y-2">
+                {filteredQuests.map((quest) => (
+                  <div key={quest.id}>
+                    {formMode === quest.id ? (
+                      <QuestForm initialQuest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} />
+                    ) : (
+                      <QuestItem 
+                        quest={quest} 
+                        onEdit={() => editQuest(quest.id)} 
+                        onDelete={() => removeQuest(quest.id)} 
+                      />
+                    )}
                   </div>
-                )}
-              </li>
-            ))}
-          </ul>
-          {quests.length === 0 && (
-            <p className="text-sm" style={{ color: "#4a2c0f" }}>No quests yet. Add one to get started!</p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center p-4 bg-amber-50 rounded border border-amber-200">
+                {filter === 'all' 
+                  ? "No quests yet. Add one to get started!" 
+                  : `No quests with status "${filter}". Add one or change the filter.`}
+              </div>
+            )}
+            
+            <div className="text-xs text-right mt-4 text-amber-800">
+              Total quests: {quests.length} (Showing: {filteredQuests.length})
+            </div>
+          </div>
         </div>
       );
     }
@@ -433,14 +870,16 @@
     /** MAIN APP COMPONENT **/
     function App() {
       return (
-        <div className="p-4">
-          <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <div className="p-4 max-w-5xl mx-auto">
+          <h1 className="app-title">D&D Campaign Journal</h1>
+          
+          <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
             <DarkModeToggle />
-            <div className="flex gap-2">
-              <button className="btn-dnd rounded" onClick={backupLocalStorage}>Backup LocalStorage</button>
+            <div className="flex flex-wrap gap-2">
+              <button className="btn-dnd rounded" onClick={backupLocalStorage}>Backup Data</button>
               <button className="btn-dnd rounded" onClick={copyForPrompt}>Copy for Prompt</button>
               <label className="btn-dnd rounded cursor-pointer text-sm flex items-center px-2">
-                Choose File
+                Restore Data
                 <input type="file" accept=".json" onChange={(e) => restoreLocalStorage(e.target.files)} className="hidden" />
               </label>
             </div>
@@ -450,6 +889,10 @@
           <CampaignNotes />
           <Shenanigans />
           <QuestTracker />
+          
+          <footer className="text-center text-sm mt-8 mb-4 text-amber-800">
+            Made for D&D Masters and their adventurous parties
+          </footer>
         </div>
       );
     }
