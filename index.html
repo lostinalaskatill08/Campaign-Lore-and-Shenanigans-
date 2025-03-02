@@ -6,22 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- React and ReactDOM 17 from jsDelivr -->
+  <!-- React & ReactDOM -->
   <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js" crossorigin></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js" crossorigin></script>
-
-  <!-- Babel for inline JSX -->
+  <!-- Babel for in-browser JSX -->
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
-  <!-- D&D-inspired font -->
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet" />
 
   <style>
     body {
       font-family: 'Cinzel', serif;
+      /* Aged paper background */
       background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
       background-blend-mode: overlay;
       color: #4a2c0f;
@@ -31,6 +29,7 @@
       color: #fafafa;
       background-blend-mode: normal;
     }
+    /* Scrollbar */
     ::-webkit-scrollbar {
       width: 12px;
     }
@@ -42,11 +41,7 @@
       border-radius: 20px;
       border: 3px solid #f5e8c7;
     }
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-    /* Unified Button Style */
+    /* D&D Themed Button */
     .btn-dnd {
       background-color: #8B0000;
       color: #f4e4bc;
@@ -59,14 +54,14 @@
     .btn-dnd:hover {
       background-color: #6d0101;
     }
-    /* Section Headers */
+    /* Section Headers (Lore, Campaign Notes, etc.) */
     .section-header {
       font-size: 1.25rem;
       font-weight: bold;
       margin-bottom: 0.5rem;
-      color: #f4e4bc;
+      color: #4a2c0f; /* Dark brown text for good contrast */
     }
-    /* Container for Campaign Components */
+    /* Container for each note/section */
     .note-container {
       background-color: #f9efd4;
       padding: 1rem;
@@ -74,37 +69,45 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.15);
       margin-bottom: 1rem;
     }
-    /* Textareas styled like previous sheets */
-    .note-textarea {
+    /* Textareas, inputs, selects with dark border, parchment BG */
+    .dnd-input,
+    .dnd-textarea,
+    .dnd-select {
       width: 100%;
       border: 1px solid #4a3f35;
-      padding: 0.75rem;
       border-radius: 0.375rem;
-      background-color: #fff;
+      background-color: #f9efd4;
       color: #4a2c0f;
+      padding: 0.75rem;
+    }
+    .dnd-textarea {
+      resize: vertical;
+      min-height: 100px;
     }
   </style>
 </head>
 <body class="text-gray-800">
   <div id="root"></div>
-  
+
   <script type="text/babel">
-    /** DARK MODE TOGGLE **/
+    /** ========== DARK MODE TOGGLE ========== */
     function DarkModeToggle() {
       const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem("darkMode") === "true");
+
       React.useEffect(() => {
         if (darkMode) document.body.classList.add("dark");
         else document.body.classList.remove("dark");
         localStorage.setItem("darkMode", darkMode);
       }, [darkMode]);
+
       return (
         <button className="px-3 py-1 btn-dnd rounded" onClick={() => setDarkMode(!darkMode)}>
           {darkMode ? "Light Mode" : "Dark Mode"}
         </button>
       );
     }
-    
-    /** BACKUP LOCALSTORAGE FUNCTION **/
+
+    /** ========== BACKUP LOCALSTORAGE ========== */
     function backupLocalStorage() {
       const data = {
         loreText: localStorage.getItem("loreText"),
@@ -121,8 +124,8 @@
       a.click();
       URL.revokeObjectURL(url);
     }
-    
-    /** RESTORE LOCALSTORAGE FUNCTION **/
+
+    /** ========== RESTORE LOCALSTORAGE ========== */
     function restoreLocalStorage(files) {
       if (!files || !files.length) return;
       const file = files[0];
@@ -143,14 +146,14 @@
       };
       reader.readAsText(file);
     }
-    
-    /** COPY FOR PROMPT FUNCTION **/
+
+    /** ========== COPY FOR PROMPT ========== */
     function copyForPrompt() {
       const data = {
         lore: localStorage.getItem("loreText") || "",
         campaignNotes: localStorage.getItem("campaignNotes") || "",
         shenanigans: localStorage.getItem("shenanigansText") || "",
-        quests: JSON.parse(localStorage.getItem("quests") || "[]")
+        quests: JSON.parse(localStorage.getItem("quests") || "[]"),
       };
       const jsonString = JSON.stringify(data, null, 2);
       navigator.clipboard.writeText(jsonString)
@@ -160,65 +163,71 @@
           alert("Failed to copy data to clipboard.");
         });
     }
-    
-    /** LORE COMPONENT **/
+
+    /** ========== LORE COMPONENT ========== */
     function Lore() {
       const [loreText, setLoreText] = React.useState(() => localStorage.getItem("loreText") || "");
+
       React.useEffect(() => {
         localStorage.setItem("loreText", loreText);
       }, [loreText]);
+
       return (
         <div className="note-container">
           <h2 className="section-header">Lore</h2>
           <textarea
             value={loreText}
             onChange={(e) => setLoreText(e.target.value)}
-            className="note-textarea"
+            className="dnd-textarea"
             placeholder="Enter your world's lore here..."
           />
         </div>
       );
     }
-    
-    /** CAMPAIGN NOTES COMPONENT **/
+
+    /** ========== CAMPAIGN NOTES COMPONENT ========== */
     function CampaignNotes() {
       const [notesText, setNotesText] = React.useState(() => localStorage.getItem("campaignNotes") || "");
+
       React.useEffect(() => {
         localStorage.setItem("campaignNotes", notesText);
       }, [notesText]);
+
       return (
         <div className="note-container">
           <h2 className="section-header">Campaign Notes</h2>
           <textarea
             value={notesText}
             onChange={(e) => setNotesText(e.target.value)}
-            className="note-textarea"
+            className="dnd-textarea"
             placeholder="Record your campaign notes here..."
           />
         </div>
       );
     }
-    
-    /** SHENANIGANS COMPONENT **/
+
+    /** ========== SHENANIGANS COMPONENT ========== */
     function Shenanigans() {
       const [shenanigansText, setShenanigansText] = React.useState(() => localStorage.getItem("shenanigansText") || "");
+
       React.useEffect(() => {
         localStorage.setItem("shenanigansText", shenanigansText);
       }, [shenanigansText]);
+
       return (
         <div className="note-container">
           <h2 className="section-header">Shenanigans</h2>
           <textarea
             value={shenanigansText}
             onChange={(e) => setShenanigansText(e.target.value)}
-            className="note-textarea"
+            className="dnd-textarea"
             placeholder="Note down memorable shenanigans here..."
           />
         </div>
       );
     }
-    
-    /** QUEST FORM COMPONENT **/
+
+    /** ========== QUEST FORM COMPONENT ========== */
     function QuestForm({ initialQuest, onSubmit, onCancel }) {
       const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
       const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : "");
@@ -226,7 +235,7 @@
       const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : "Medium");
       const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : "Not Started");
       const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : "");
-    
+
       const handleSubmit = (e) => {
         e.preventDefault();
         if (!name.trim()) {
@@ -235,44 +244,52 @@
         }
         onSubmit({ name, description, reward, difficulty, status, notes });
       };
-    
+
       return (
-        <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-gray-50 rounded">
+        <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-amber-50 rounded">
           <div>
-            <label className="block text-sm font-medium text-amber-400">Name</label>
+            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>
+              Name
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border p-1 rounded"
+              className="dnd-input"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-400">Description</label>
+            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border p-1 rounded"
+              className="dnd-textarea"
               placeholder="Enter quest description"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-400">Reward</label>
+            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>
+              Reward
+            </label>
             <input
               type="text"
               value={reward}
               onChange={(e) => setReward(e.target.value)}
-              className="w-full border p-1 rounded"
+              className="dnd-input"
               placeholder="Enter quest reward"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-400">Difficulty</label>
+            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>
+              Difficulty
+            </label>
             <select
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value)}
-              className="w-full border p-1 rounded"
+              className="dnd-input"
             >
               <option value="Easy">Easy</option>
               <option value="Medium">Medium</option>
@@ -281,11 +298,13 @@
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-400">Status</label>
+            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>
+              Status
+            </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full border p-1 rounded"
+              className="dnd-input"
             >
               <option value="Not Started">Not Started</option>
               <option value="In Progress">In Progress</option>
@@ -294,49 +313,40 @@
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-amber-400">Notes</label>
+            <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>
+              Notes
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full border p-1 rounded"
+              className="dnd-textarea"
               placeholder="Additional quest notes"
             />
           </div>
           <div className="flex gap-2">
-            <button
-              type="submit"
-              className="px-3 py-1 btn-dnd rounded"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-3 py-1 btn-dnd rounded"
-            >
-              Cancel
-            </button>
+            <button type="submit" className="btn-dnd rounded">Save</button>
+            <button type="button" onClick={onCancel} className="btn-dnd rounded">Cancel</button>
           </div>
         </form>
       );
     }
-    
-    /** QUEST TRACKER COMPONENT **/
+
+    /** ========== QUEST TRACKER COMPONENT ========== */
     function QuestTracker() {
       const [quests, setQuests] = React.useState(() => {
         const saved = localStorage.getItem("quests");
         return saved ? JSON.parse(saved) : [];
       });
       const [formMode, setFormMode] = React.useState("none");
-    
+
       React.useEffect(() => {
         localStorage.setItem("quests", JSON.stringify(quests));
       }, [quests]);
-    
+
       const addQuest = () => setFormMode("add");
       const editQuest = (id) => setFormMode(id);
       const cancelForm = () => setFormMode("none");
-    
+
       const handleFormSubmit = (formData) => {
         if (formMode === "add") {
           const newQuest = { id: Date.now(), ...formData };
@@ -346,22 +356,19 @@
         }
         setFormMode("none");
       };
-    
+
       const removeQuest = (id) => {
         setQuests(quests.filter((q) => q.id !== id));
       };
-    
+
       return (
         <div className="note-container">
           <h2 className="section-header">Quest Tracker</h2>
-          <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
+          <p className="text-sm mb-2" style={{ color: "#4a2c0f" }}>
+            Manage your ongoing quests here.
+          </p>
           <div className="mb-4">
-            <button
-              className="px-3 py-1 btn-dnd rounded"
-              onClick={addQuest}
-            >
-              Add New Quest
-            </button>
+            <button className="btn-dnd rounded" onClick={addQuest}>Add New Quest</button>
           </div>
           {formMode === "add" && (
             <QuestForm
@@ -372,7 +379,7 @@
           )}
           <ul className="space-y-2">
             {quests.map((quest) => (
-              <li key={quest.id} className="bg-white p-2 rounded shadow">
+              <li key={quest.id} className="bg-[#f9efd4] p-2 rounded shadow border border-[#4a3f35]">
                 {formMode === quest.id ? (
                   <QuestForm
                     initialQuest={quest}
@@ -381,16 +388,18 @@
                   />
                 ) : (
                   <div className="flex justify-between items-center">
-                    <span className="text-amber-400">{quest.name} - {quest.difficulty} - {quest.status}</span>
-                    <div>
+                    <span style={{ color: "#4a2c0f" }}>
+                      {quest.name} — {quest.difficulty} — {quest.status}
+                    </span>
+                    <div className="flex gap-2">
                       <button
-                        className="px-3 py-1 btn-dnd rounded mr-2"
+                        className="btn-dnd rounded"
                         onClick={() => editQuest(quest.id)}
                       >
                         Edit
                       </button>
                       <button
-                        className="px-3 py-1 btn-dnd rounded"
+                        className="btn-dnd rounded"
                         onClick={() => removeQuest(quest.id)}
                       >
                         Delete
@@ -402,49 +411,47 @@
             ))}
           </ul>
           {quests.length === 0 && (
-            <p className="text-sm text-gray-500">No quests yet. Add one to get started!</p>
+            <p className="text-sm" style={{ color: "#4a2c0f" }}>
+              No quests yet. Add one to get started!
+            </p>
           )}
         </div>
       );
     }
-    
-    /** APP COMPONENT **/
+
+    /** ========== APP COMPONENT ========== */
     function App() {
       return (
         <div className="p-4">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
             <DarkModeToggle />
             <div className="flex gap-2">
-              <button
-                className="px-3 py-1 btn-dnd rounded"
-                onClick={backupLocalStorage}
-              >
+              <button className="btn-dnd rounded" onClick={backupLocalStorage}>
                 Backup LocalStorage
               </button>
-              <button
-                className="px-3 py-1 btn-dnd rounded"
-                onClick={copyForPrompt}
-              >
+              <button className="btn-dnd rounded" onClick={copyForPrompt}>
                 Copy for Prompt
               </button>
-              <input
-                type="file"
-                accept=".json"
-                onChange={(e) => restoreLocalStorage(e.target.files)}
-                className="border p-1 rounded"
-              />
+              <label className="btn-dnd rounded cursor-pointer text-sm flex items-center px-2">
+                Choose File
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={(e) => restoreLocalStorage(e.target.files)}
+                  className="hidden"
+                />
+              </label>
             </div>
           </div>
-          <div className="space-y-4">
-            <Lore />
-            <CampaignNotes />
-            <Shenanigans />
-            <QuestTracker />
-          </div>
+
+          <Lore />
+          <CampaignNotes />
+          <Shenanigans />
+          <QuestTracker />
         </div>
       );
     }
-    
+
     ReactDOM.render(<App />, document.getElementById("root"));
   </script>
 </body>
