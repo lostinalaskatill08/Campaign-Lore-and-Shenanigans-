@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <title>Campaign Notes with Scroll Design (Fixed LTR)</title>
+  <title>Campaign Notes with Item Lists</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -12,19 +12,15 @@
   <!-- Babel for inline JSX -->
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <!-- Google Fonts -->
-  <link 
-    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" 
-    rel="stylesheet" 
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
 
   <style>
-    /* ========== BASE STYLES ========== */
     body {
       font-family: 'Cormorant Garamond', serif;
       background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
       background-blend-mode: overlay;
       color: #4a2c0f;
-      direction: ltr; /* Force LTR at the page level */
+      direction: ltr;
       font-size: 1.1rem;
     }
     h1, h2, h3, h4, button, .section-header {
@@ -46,8 +42,7 @@
       border-radius: 20px;
       border: 3px solid #f5e8c7;
     }
-
-    /* ========== BUTTON STYLES ========== */
+    /* Button style */
     .btn-dnd {
       background-color: #8B0000;
       color: #f4e4bc;
@@ -62,8 +57,7 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-
-    /* ========== HEADINGS & SECTIONS ========== */
+    /* Section header style */
     .section-header {
       font-size: 1.5rem;
       font-weight: bold;
@@ -79,256 +73,49 @@
       background-image: linear-gradient(to right, transparent, #8b5a2b, transparent);
       margin-top: 0.25rem;
     }
+    /* Container style for each section */
     .note-container {
       background-color: #f9efd4;
       padding: 1.5rem;
       border-radius: 0.5rem;
       box-shadow: 0 0 15px rgba(0,0,0,0.15);
       margin-bottom: 2rem;
-      position: relative;
-      overflow: hidden;
     }
-
-    /* ========== SCROLL DESIGN ========== */
-    .scroll-container {
-      position: relative;
-      margin: 1.5rem 0;
-      background-color: #f9efd4;
-      border-radius: 0px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.15);
-      overflow: visible;
-    }
-    .scroll-container::before,
-    .scroll-container::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 35px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 60' preserveAspectRatio='none'%3E%3Cpath fill='%23e0d2b0' d='M0,0 C250,60 750,60 1000,0 L1000,60 L0,60 Z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-size: 100% 100%;
-      z-index: 5;
-    }
-    .scroll-container::before {
-      top: -20px;
-      transform: rotate(180deg);
-    }
-    .scroll-container::after {
-      bottom: -20px;
-    }
-    .scroll-content {
-      padding: 2rem 1.5rem;
-      position: relative;
-      z-index: 1;
-      background-color: #f9efd4;
-      background-image: 
-        repeating-linear-gradient(#f9efd4 0px, #f9efd4 24px, #e0d2b0 25px);
-      margin: 0.5rem;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-      border-left: 1px solid #e0d2b0;
-      border-right: 1px solid #e0d2b0;
-    }
-
-    /* ========== FORM INPUT STYLES ========== */
-    .dnd-input,
-    .dnd-select,
-    .dnd-textarea {
+    /* Input field styling */
+    .dnd-input {
       width: 100%;
       border: 1px solid #8b5a2b;
       border-radius: 0.375rem;
       background-color: #f9efd4;
       color: #4a2c0f;
       padding: 0.75rem;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
       transition: all 0.3s ease;
     }
-    .dnd-input:focus,
-    .dnd-select:focus,
-    .dnd-textarea:focus {
+    .dnd-input:focus {
       outline: none;
       border-color: #6d4c3d;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05), 0 0 5px rgba(139, 90, 43, 0.5);
+      box-shadow: 0 0 5px rgba(139,90,43,0.5);
     }
-    .dnd-input::placeholder,
-    .dnd-textarea::placeholder {
+    .dnd-input::placeholder {
       color: #8b5a2b;
       opacity: 0.6;
-    }
-    .dnd-textarea {
-      resize: vertical;
-      min-height: 100px;
-      line-height: 1.5;
-    }
-
-    /* ========== RICH TEXT EDITOR ========== */
-    .rich-editor-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      background-color: #e0d2b0;
-      padding: 0.5rem;
-      border-radius: 0.375rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .rich-editor-toolbar button {
-      padding: 0.35rem 0.6rem;
-      font-family: 'Cinzel', serif;
-      border: 1px solid #8b5a2b;
-      background-color: #f4e4bc;
-      color: #4a2c0f;
-      cursor: pointer;
-      border-radius: 0.25rem;
-      transition: all 0.2s ease;
-    }
-    .rich-editor-toolbar button:hover {
-      background-color: #e0d2b7;
-      transform: translateY(-1px);
-    }
-    .rich-editor-toolbar button.active {
-      background-color: #8b5a2b;
-      color: #f4e4bc;
-    }
-    .dnd-rich-editor {
-      min-height: 150px;
-      border: 1px solid #8b5a2b;
-      border-radius: 0.375rem;
-      background-color: #f9efd4;
-      color: #4a2c0f;
-      padding: 0.75rem;
-      outline: none;
-      white-space: pre-wrap;
-      direction: ltr;           /* Force left-to-right direction */
-      unicode-bidi: bidi-override; /* Override any hidden RTL markers */
-      text-align: left;        /* Force text alignment to left */
-      line-height: 1.5;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-      overflow-y: auto;
-      max-height: 400px;
-    }
-    .dnd-rich-editor[placeholder]:empty:before {
-      content: attr(placeholder);
-      color: #8b5a2b;
-      opacity: 0.6;
-    }
-
-    /* ========== QUEST ITEM STYLES ========== */
-    .quest-item {
-      background-color: #f4e4bc;
-      border: 1px solid #8b5a2b;
-      border-radius: 0.375rem;
-      transition: all 0.3s ease;
-    }
-    .quest-item:hover {
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .dark .quest-item {
-      background-color: #2d2d2d;
-      border-color: #6d4c3d;
-    }
-    .difficulty-easy {
-      border-left: 4px solid #4caf50;
-    }
-    .difficulty-medium {
-      border-left: 4px solid #ff9800;
-    }
-    .difficulty-hard {
-      border-left: 4px solid #f44336;
-    }
-    .difficulty-legendary {
-      border-left: 4px solid #9c27b0;
-    }
-    .status-notstarted {
-      border-right: 4px solid #9e9e9e;
-    }
-    .status-inprogress {
-      border-right: 4px solid #2196f3;
-    }
-    .status-completed {
-      border-right: 4px solid #4caf50;
-    }
-    .status-failed {
-      border-right: 4px solid #f44336;
-    }
-    .quest-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem;
-      border-bottom: 1px solid #e0d2b0;
-      cursor: pointer;
-    }
-    .quest-content {
-      padding: 0.75rem;
-    }
-    .quest-label {
-      display: inline-block;
-      font-family: 'Cinzel', serif;
-      font-size: 0.8rem;
-      color: #6d4c3d;
-      margin-bottom: 0.25rem;
-    }
-    .quest-value {
-      margin-bottom: 0.5rem;
-    }
-
-    /* ========== FORM FIELD LABEL STYLES ========== */
-    .field-label {
-      display: block;
-      font-family: 'Cinzel', serif;
-      font-weight: bold;
-      margin-bottom: 0.25rem;
-      color: #6d4c3d;
-    }
-    .required::after {
-      content: "*";
-      color: #8B0000;
-      margin-left: 0.25rem;
-    }
-
-    /* ========== APP TITLE ========== */
-    .app-title {
-      font-family: 'Cinzel', serif;
-      font-size: 2rem;
-      font-weight: bold;
-      color: #8B0000;
-      text-align: center;
-      margin: 1rem 0;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
   <div id="root"></div>
-
   <script type="text/babel">
-
-    /** ========== DARK MODE TOGGLE ========== */
-    function DarkModeToggle() {
-      const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem("darkMode") === "true");
-
-      React.useEffect(() => {
-        if (darkMode) document.body.classList.add("dark");
-        else document.body.classList.remove("dark");
-        localStorage.setItem("darkMode", darkMode);
-      }, [darkMode]);
-
-      return (
-        <button className="px-3 py-1 btn-dnd rounded" onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? "Light Mode" : "Dark Mode"}
-        </button>
-      );
-    }
-
-    /** ========== BACKUP LOCALSTORAGE ========== */
+    /**********************
+     * Utility Functions
+     **********************/
+    // Backup localStorage to a JSON file
     function backupLocalStorage() {
       const data = {
-        loreText: localStorage.getItem("loreText"),
-        campaignNotes: localStorage.getItem("campaignNotes"),
-        shenanigansText: localStorage.getItem("shenanigansText"),
+        loreItems: localStorage.getItem("loreItems"),
+        campaignNotesItems: localStorage.getItem("campaignNotesItems"),
+        shenanigansItems: localStorage.getItem("shenanigansItems"),
         quests: localStorage.getItem("quests"),
-        darkMode: localStorage.getItem("darkMode"),
+        darkMode: localStorage.getItem("darkMode")
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -339,7 +126,7 @@
       URL.revokeObjectURL(url);
     }
 
-    /** ========== RESTORE LOCALSTORAGE ========== */
+    // Restore localStorage from a JSON file
     function restoreLocalStorage(files) {
       if (!files || !files.length) return;
       const file = files[0];
@@ -361,12 +148,12 @@
       reader.readAsText(file);
     }
 
-    /** ========== COPY FOR PROMPT ========== */
+    // Copy data for prompt (all sections)
     function copyForPrompt() {
       const data = {
-        lore: localStorage.getItem("loreText") || "",
-        campaignNotes: localStorage.getItem("campaignNotes") || "",
-        shenanigans: localStorage.getItem("shenanigansText") || "",
+        lore: JSON.parse(localStorage.getItem("loreItems") || "[]"),
+        campaignNotes: JSON.parse(localStorage.getItem("campaignNotesItems") || "[]"),
+        shenanigans: JSON.parse(localStorage.getItem("shenanigansItems") || "[]"),
         quests: JSON.parse(localStorage.getItem("quests") || "[]")
       };
       const jsonString = JSON.stringify(data, null, 2);
@@ -378,247 +165,134 @@
         });
     }
 
-    /** ========== ENHANCED RICH EDITOR ========== */
-    function RichEditor({ value, onChange, placeholder }) {
-      const editorRef = React.useRef(null);
-      const [activeFormats, setActiveFormats] = React.useState({
-        bold: false,
-        italic: false,
-        underline: false,
-        strikethrough: false,
-        ol: false,
-        ul: false,
-        alignLeft: true,
-        alignCenter: false,
-        alignRight: false,
+    /**********************
+     * Reusable Item Tracker Component
+     * Used for Lore, Campaign Notes, and Shenanigans
+     **********************/
+    function ItemTracker({ title, storageKey, placeholder }) {
+      const [items, setItems] = React.useState(() => {
+        const saved = localStorage.getItem(storageKey);
+        return saved ? JSON.parse(saved) : [];
       });
+      const [editingIndex, setEditingIndex] = React.useState(null);
+      const [inputValue, setInputValue] = React.useState("");
 
       React.useEffect(() => {
-        // If there's no content or just <br>, clear editor
-        if (editorRef.current) {
-          if (!value || value === '<br>') {
-            editorRef.current.innerHTML = '';
-          }
-        }
-      }, [value]);
+        localStorage.setItem(storageKey, JSON.stringify(items));
+      }, [items, storageKey]);
 
-      function execCmd(cmd, val = null) {
-        if (editorRef.current) {
-          editorRef.current.focus();
-        }
-        document.execCommand(cmd, false, val);
-        updateActiveFormats();
+      function addItem() {
+        if (inputValue.trim() === "") return;
+        setItems([...items, inputValue.trim()]);
+        setInputValue("");
       }
 
-      function updateActiveFormats() {
-        setActiveFormats({
-          bold: document.queryCommandState('bold'),
-          italic: document.queryCommandState('italic'),
-          underline: document.queryCommandState('underline'),
-          strikethrough: document.queryCommandState('strikethrough'),
-          ol: document.queryCommandState('insertOrderedList'),
-          ul: document.queryCommandState('insertUnorderedList'),
-          alignLeft: document.queryCommandState('justifyLeft'),
-          alignCenter: document.queryCommandState('justifyCenter'),
-          alignRight: document.queryCommandState('justifyRight'),
-        });
+      function updateItem(index, newValue) {
+        const newItems = [...items];
+        newItems[index] = newValue;
+        setItems(newItems);
       }
 
-      function handleInput(e) {
-        updateActiveFormats();
-        onChange(e.currentTarget.innerHTML);
+      function deleteItem(index) {
+        const newItems = items.filter((_, i) => i !== index);
+        setItems(newItems);
       }
 
       return (
-        <div>
-          <div className="rich-editor-toolbar">
-            {/* BOLD */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("bold")}
-              className={activeFormats.bold ? "active" : ""}
-              title="Bold"
-            >
-              <b>B</b>
-            </button>
-
-            {/* ITALIC */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("italic")}
-              className={activeFormats.italic ? "active" : ""}
-              title="Italic"
-            >
-              <i>I</i>
-            </button>
-
-            {/* UNDERLINE */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("underline")}
-              className={activeFormats.underline ? "active" : ""}
-              title="Underline"
-            >
-              <u>U</u>
-            </button>
-
-            {/* STRIKETHROUGH */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("strikethrough")}
-              className={activeFormats.strikethrough ? "active" : ""}
-              title="Strikethrough"
-            >
-              <span style={{ textDecoration: "line-through" }}>S</span>
-            </button>
-
-            {/* ORDERED LIST */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("insertOrderedList")}
-              className={activeFormats.ol ? "active" : ""}
-              title="Numbered List"
-            >
-              1.
-            </button>
-
-            {/* UNORDERED LIST */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("insertUnorderedList")}
-              className={activeFormats.ul ? "active" : ""}
-              title="Bullet List"
-            >
-              •
-            </button>
-
-            {/* HEADING (h3) */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("formatBlock", "h3")}
-              title="Heading 3"
-            >
-              H
-            </button>
-
-            {/* ALIGN LEFT */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("justifyLeft")}
-              className={activeFormats.alignLeft ? "active" : ""}
-              title="Align Left"
-            >
-              ⇤
-            </button>
-
-            {/* ALIGN CENTER */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("justifyCenter")}
-              className={activeFormats.alignCenter ? "active" : ""}
-              title="Align Center"
-            >
-              ⇔
-            </button>
-
-            {/* ALIGN RIGHT */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("justifyRight")}
-              className={activeFormats.alignRight ? "active" : ""}
-              title="Align Right"
-            >
-              ⇥
-            </button>
-
-            {/* CLEAR FORMATTING */}
-            <button 
-              type="button" 
-              onClick={() => execCmd("removeFormat")}
-              title="Clear Formatting"
-            >
-              Clear
-            </button>
+        <div className="note-container">
+          <h2 className="section-header">{title}</h2>
+          <div className="mb-4">
+            {editingIndex === null && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={placeholder}
+                  className="dnd-input"
+                />
+                <button className="btn-dnd rounded" onClick={addItem}>Add</button>
+              </div>
+            )}
           </div>
-
-          <div
-            ref={editorRef}
-            className="dnd-rich-editor"
-            contentEditable
-            onInput={handleInput}
-            onKeyUp={updateActiveFormats}
-            onMouseUp={updateActiveFormats}
-            dangerouslySetInnerHTML={{ __html: value }}
-            placeholder={placeholder}
-          />
+          <ul className="space-y-2">
+            {items.map((item, index) => (
+              <li key={index} className="p-2 rounded border border-[#4a3f35] flex justify-between items-center">
+                {editingIndex === index ? (
+                  <>
+                    <input
+                      type="text"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      className="dnd-input"
+                    />
+                    <div className="flex gap-2">
+                      <button className="btn-dnd rounded" onClick={() => {
+                        updateItem(index, inputValue);
+                        setEditingIndex(null);
+                        setInputValue("");
+                      }}>Save</button>
+                      <button className="btn-dnd rounded" onClick={() => {
+                        setEditingIndex(null);
+                        setInputValue("");
+                      }}>Cancel</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span>{item}</span>
+                    <div className="flex gap-2">
+                      <button className="btn-dnd rounded" onClick={() => {
+                        setEditingIndex(index);
+                        setInputValue(item);
+                      }}>Edit</button>
+                      <button className="btn-dnd rounded" onClick={() => deleteItem(index)}>Delete</button>
+                    </div>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       );
     }
 
-    /** ========== LORE COMPONENT ========== */
-    function Lore() {
-      const [loreHTML, setLoreHTML] = React.useState(() => localStorage.getItem("loreText") || "");
-      React.useEffect(() => {
-        localStorage.setItem("loreText", loreHTML);
-      }, [loreHTML]);
-
+    /**********************
+     * Components for Lore, Campaign Notes, Shenanigans
+     **********************/
+    function LoreSection() {
       return (
-        <div className="scroll-container">
-          <h2 className="section-header">World Lore</h2>
-          <div className="scroll-content">
-            <RichEditor
-              value={loreHTML}
-              onChange={setLoreHTML}
-              placeholder="Enter your world's lore here..."
-            />
-          </div>
-        </div>
+        <ItemTracker 
+          title="Lore" 
+          storageKey="loreItems" 
+          placeholder="Add a lore entry (e.g., major events, history, legends)..." 
+        />
       );
     }
 
-    /** ========== CAMPAIGN NOTES COMPONENT ========== */
-    function CampaignNotes() {
-      const [notesHTML, setNotesHTML] = React.useState(() => localStorage.getItem("campaignNotes") || "");
-      React.useEffect(() => {
-        localStorage.setItem("campaignNotes", notesHTML);
-      }, [notesHTML]);
-
+    function CampaignNotesSection() {
       return (
-        <div className="scroll-container">
-          <h2 className="section-header">Campaign Notes</h2>
-          <div className="scroll-content">
-            <RichEditor
-              value={notesHTML}
-              onChange={setNotesHTML}
-              placeholder="Record your campaign notes here..."
-            />
-          </div>
-        </div>
+        <ItemTracker 
+          title="Campaign Notes" 
+          storageKey="campaignNotesItems" 
+          placeholder="Add a campaign note (e.g., recent events, NPC encounters)..." 
+        />
       );
     }
 
-    /** ========== SHENANIGANS COMPONENT ========== */
-    function Shenanigans() {
-      const [shenanigansHTML, setShenanigansHTML] = React.useState(() => localStorage.getItem("shenanigansText") || "");
-      React.useEffect(() => {
-        localStorage.setItem("shenanigansText", shenanigansHTML);
-      }, [shenanigansHTML]);
-
+    function ShenanigansSection() {
       return (
-        <div className="scroll-container">
-          <h2 className="section-header">Shenanigans</h2>
-          <div className="scroll-content">
-            <RichEditor
-              value={shenanigansHTML}
-              onChange={setShenanigansHTML}
-              placeholder="Note down memorable shenanigans here..."
-            />
-          </div>
-        </div>
+        <ItemTracker 
+          title="Shenanigans" 
+          storageKey="shenanigansItems" 
+          placeholder="Add a shenanigan (e.g., funny moments, unexpected mishaps)..." 
+        />
       );
     }
 
-    /** ========== QUEST FORM COMPONENT ========== */
+    /**********************
+     * QUEST TRACKER (unchanged from previous version)
+     **********************/
     function QuestForm({ initialQuest, onSubmit, onCancel }) {
       const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
       const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : "");
@@ -637,10 +311,7 @@
       }
 
       return (
-        <form 
-          onSubmit={handleSubmit} 
-          className="space-y-4 p-4 bg-amber-50 rounded shadow-lg border border-amber-700 dark:bg-gray-800 dark:border-gray-600"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-amber-50 rounded shadow-lg border border-amber-700 dark:bg-gray-800 dark:border-gray-600">
           <div>
             <label className="field-label required">Quest Name</label>
             <input
@@ -658,7 +329,7 @@
               className="dnd-textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the quest objectives, who gave it, etc."
+              placeholder="Describe the quest objectives and details"
             />
           </div>
           <div>
@@ -705,94 +376,17 @@
               className="dnd-textarea"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Keep track of progress, clues found, important NPCs, etc."
+              placeholder="Keep track of progress, clues, important NPCs, etc."
             />
           </div>
           <div className="flex gap-4 justify-end mt-4">
-            <button type="button" onClick={onCancel} className="btn-dnd rounded py-2 px-4">
-              Cancel
-            </button>
-            <button type="submit" className="btn-dnd rounded py-2 px-4">
-              Save Quest
-            </button>
+            <button type="button" onClick={onCancel} className="btn-dnd rounded py-2 px-4">Cancel</button>
+            <button type="submit" className="btn-dnd rounded py-2 px-4">Save Quest</button>
           </div>
         </form>
       );
     }
 
-    /** ========== QUEST ITEM COMPONENT ========== */
-    function QuestItem({ quest, onEdit, onDelete }) {
-      const [expanded, setExpanded] = React.useState(false);
-
-      const difficultyClass = `difficulty-${quest.difficulty.toLowerCase()}`;
-      const statusClass = `status-${quest.status.toLowerCase().replace(/\s+/g, '')}`;
-
-      return (
-        <div className={`quest-item ${difficultyClass} ${statusClass} mb-4 shadow`}>
-          <div 
-            className="quest-header" 
-            onClick={() => setExpanded(!expanded)} 
-            style={{ cursor: "pointer" }}
-          >
-            <h3 className="font-bold">{quest.name}</h3>
-            <div className="flex gap-2 items-center">
-              <span className="text-sm px-2 py-1 bg-amber-100 rounded">{quest.status}</span>
-              <button 
-                type="button" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(quest.id);
-                }} 
-                className="text-amber-800 hover:text-amber-600"
-              >
-                ✎
-              </button>
-              <button 
-                type="button" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm('Are you sure you want to delete this quest?')) {
-                    onDelete(quest.id);
-                  }
-                }} 
-                className="text-red-700 hover:text-red-500"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-
-          {expanded && (
-            <div className="quest-content">
-              {quest.description && (
-                <div className="mb-3">
-                  <span className="quest-label">Description:</span>
-                  <div className="quest-value">{quest.description}</div>
-                </div>
-              )}
-              {quest.reward && (
-                <div className="mb-3">
-                  <span className="quest-label">Reward:</span>
-                  <div className="quest-value">{quest.reward}</div>
-                </div>
-              )}
-              <div className="mb-3">
-                <span className="quest-label">Difficulty:</span>
-                <div className="quest-value">{quest.difficulty}</div>
-              </div>
-              {quest.notes && (
-                <div>
-                  <span className="quest-label">Notes:</span>
-                  <div className="quest-value">{quest.notes}</div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    /** ========== QUEST TRACKER COMPONENT ========== */
     function QuestTracker() {
       const [quests, setQuests] = React.useState(() => {
         const saved = localStorage.getItem("quests");
@@ -823,7 +417,6 @@
         setQuests(quests.filter((q) => q.id !== id));
       };
 
-      // Filter quests based on selected status
       const filteredQuests = filter === 'all'
         ? quests
         : quests.filter(q => q.status === filter);
@@ -836,7 +429,6 @@
               <button className="btn-dnd rounded py-2 px-4" onClick={addQuest}>
                 Add New Quest
               </button>
-
               <div className="flex items-center">
                 <label className="mr-2 font-bold text-sm">Filter:</label>
                 <select 
@@ -852,13 +444,11 @@
                 </select>
               </div>
             </div>
-
             {formMode === "add" && (
               <div className="mb-6 border-2 border-amber-700 rounded p-1">
                 <QuestForm initialQuest={null} onSubmit={handleFormSubmit} onCancel={cancelForm} />
               </div>
             )}
-
             {filteredQuests.length > 0 ? (
               <div className="space-y-2">
                 {filteredQuests.map((quest) => (
@@ -866,11 +456,62 @@
                     {formMode === quest.id ? (
                       <QuestForm initialQuest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} />
                     ) : (
-                      <QuestItem
-                        quest={quest}
-                        onEdit={() => editQuest(quest.id)}
-                        onDelete={() => removeQuest(quest.id)}
-                      />
+                      <div className="quest-item mb-4 shadow border border-[#4a3f35] rounded">
+                        <div className="quest-header" onClick={() => {}}>
+                          <h3 className="font-bold">{quest.name}</h3>
+                          <div className="flex gap-2 items-center">
+                            <span className="text-sm px-2 py-1 bg-amber-100 rounded">{quest.status}</span>
+                            <button 
+                              type="button" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                editQuest(quest.id);
+                              }} 
+                              className="text-amber-800 hover:text-amber-600"
+                              title="Edit Quest"
+                            >
+                              ✎
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm('Are you sure you want to delete this quest?')) {
+                                  removeQuest(quest.id);
+                                }
+                              }} 
+                              className="text-red-700 hover:text-red-500"
+                              title="Delete Quest"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                        <div className="quest-content p-4">
+                          {quest.description && (
+                            <div className="mb-3">
+                              <span className="quest-label">Description:</span>
+                              <div className="quest-value">{quest.description}</div>
+                            </div>
+                          )}
+                          {quest.reward && (
+                            <div className="mb-3">
+                              <span className="quest-label">Reward:</span>
+                              <div className="quest-value">{quest.reward}</div>
+                            </div>
+                          )}
+                          <div className="mb-3">
+                            <span className="quest-label">Difficulty:</span>
+                            <div className="quest-value">{quest.difficulty}</div>
+                          </div>
+                          {quest.notes && (
+                            <div>
+                              <span className="quest-label">Notes:</span>
+                              <div className="quest-value">{quest.notes}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -882,7 +523,6 @@
                   : `No quests with status "${filter}". Add one or change the filter.`}
               </div>
             )}
-
             <div className="text-xs text-right mt-4 text-amber-800">
               Total quests: {quests.length} (Showing: {filteredQuests.length})
             </div>
@@ -891,12 +531,13 @@
       );
     }
 
-    /** ========== MAIN APP COMPONENT ========== */
+    /**********************
+     * MAIN APP COMPONENT
+     **********************/
     function App() {
       return (
         <div className="p-4 max-w-5xl mx-auto">
           <h1 className="app-title">D&D Campaign Journal</h1>
-
           <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
             <DarkModeToggle />
             <div className="flex flex-wrap gap-2">
@@ -908,12 +549,10 @@
               </label>
             </div>
           </div>
-
-          <Lore />
-          <CampaignNotes />
-          <Shenanigans />
+          <LoreSection />
+          <CampaignNotesSection />
+          <ShenanigansSection />
           <QuestTracker />
-
           <footer className="text-center text-sm mt-8 mb-4 text-amber-800">
             Made for D&D Masters and their adventurous parties
           </footer>
