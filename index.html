@@ -9,10 +9,11 @@
   <!-- React & ReactDOM -->
   <script src="https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js" crossorigin></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js" crossorigin></script>
-  <!-- Babel for in-browser JSX -->
+  <!-- Babel for inline JSX -->
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet" />
+
   <style>
     body {
       font-family: 'Cinzel', serif;
@@ -61,7 +62,21 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.15);
       margin-bottom: 1rem;
     }
-    /* Rich Editor styles */
+    .dnd-input,
+    .dnd-select,
+    .dnd-textarea {
+      width: 100%;
+      border: 1px solid #4a3f35;
+      border-radius: 0.375rem;
+      background-color: #f9efd4;
+      color: #4a2c0f;
+      padding: 0.75rem;
+    }
+    .dnd-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    /* Rich Editor Toolbar & Editor Styles */
     .rich-editor-toolbar {
       display: flex;
       gap: 0.25rem;
@@ -94,407 +109,358 @@
 <div id="root"></div>
 
 <script type="text/babel">
+  /** DARK MODE TOGGLE **/
+  function DarkModeToggle() {
+    const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem("darkMode") === "true");
+    React.useEffect(() => {
+      if (darkMode) document.body.classList.add("dark");
+      else document.body.classList.remove("dark");
+      localStorage.setItem("darkMode", darkMode);
+    }, [darkMode]);
+    return (
+      <button className="px-3 py-1 btn-dnd rounded" onClick={() => setDarkMode(!darkMode)}>
+        {darkMode ? "Light Mode" : "Dark Mode"}
+      </button>
+    );
+  }
 
-/** ========== Dark Mode Toggle ========== */
-function DarkModeToggle() {
-  const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem("darkMode") === "true");
+  /** BACKUP LOCALSTORAGE **/
+  function backupLocalStorage() {
+    const data = {
+      loreText: localStorage.getItem("loreText"),
+      campaignNotes: localStorage.getItem("campaignNotes"),
+      shenanigansText: localStorage.getItem("shenanigansText"),
+      quests: localStorage.getItem("quests"),
+      darkMode: localStorage.getItem("darkMode"),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "campaign_backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
-  React.useEffect(() => {
-    if (darkMode) document.body.classList.add("dark");
-    else document.body.classList.remove("dark");
-    localStorage.setItem("darkMode", darkMode);
-  }, [darkMode]);
-
-  return (
-    <button className="px-3 py-1 btn-dnd rounded" onClick={() => setDarkMode(!darkMode)}>
-      {darkMode ? "Light Mode" : "Dark Mode"}
-    </button>
-  );
-}
-
-/** ========== Backup LocalStorage ========== */
-function backupLocalStorage() {
-  const data = {
-    loreText: localStorage.getItem("loreText"),
-    campaignNotes: localStorage.getItem("campaignNotes"),
-    shenanigansText: localStorage.getItem("shenanigansText"),
-    quests: localStorage.getItem("quests"),
-    darkMode: localStorage.getItem("darkMode"),
-  };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "campaign_backup.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/** ========== Restore LocalStorage ========== */
-function restoreLocalStorage(files) {
-  if (!files || !files.length) return;
-  const file = files[0];
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      for (const key in data) {
-        if (data[key] !== null && data[key] !== undefined) {
-          localStorage.setItem(key, data[key]);
+  /** RESTORE LOCALSTORAGE **/
+  function restoreLocalStorage(files) {
+    if (!files || !files.length) return;
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        for (const key in data) {
+          if (data[key] !== null && data[key] !== undefined) {
+            localStorage.setItem(key, data[key]);
+          }
         }
+        alert("LocalStorage restored. Please refresh the page.");
+      } catch (err) {
+        console.error(err);
+        alert("Failed to restore. Invalid JSON?");
       }
-      alert("LocalStorage restored. Please refresh the page.");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to restore. Invalid JSON?");
+    };
+    reader.readAsText(file);
+  }
+
+  /** COPY FOR PROMPT **/
+  function copyForPrompt() {
+    const data = {
+      lore: localStorage.getItem("loreText") || "",
+      campaignNotes: localStorage.getItem("campaignNotes") || "",
+      shenanigans: localStorage.getItem("shenanigansText") || "",
+      quests: JSON.parse(localStorage.getItem("quests") || "[]")
+    };
+    const jsonString = JSON.stringify(data, null, 2);
+    navigator.clipboard.writeText(jsonString)
+      .then(() => alert("Data copied to clipboard!"))
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+        alert("Failed to copy data to clipboard.");
+      });
+  }
+
+  /** RichEditor Component **/
+  function RichEditor({ value, onChange, placeholder }) {
+    const editorRef = React.useRef(null);
+
+    // Focus editor then execute command
+    function execCmd(cmd) {
+      if (editorRef.current) {
+        editorRef.current.focus();
+      }
+      document.execCommand(cmd, false, null);
     }
-  };
-  reader.readAsText(file);
-}
 
-/** ========== Copy for Prompt ========== */
-function copyForPrompt() {
-  const data = {
-    lore: localStorage.getItem("loreText") || "",
-    campaignNotes: localStorage.getItem("campaignNotes") || "",
-    shenanigans: localStorage.getItem("shenanigansText") || "",
-    quests: JSON.parse(localStorage.getItem("quests") || "[]"),
-  };
-  const jsonString = JSON.stringify(data, null, 2);
-  navigator.clipboard.writeText(jsonString)
-    .then(() => alert("Data copied to clipboard!"))
-    .catch((err) => {
-      console.error("Failed to copy: ", err);
-      alert("Failed to copy data to clipboard.");
-    });
-}
-
-/** ========== Reusable RichEditor component ========== */
-function RichEditor({ value, onChange, placeholder }) {
-  const editorRef = React.useRef(null);
-
-  // Execute a document command (bold, italic, etc.)
-  function execCmd(cmd) {
-    document.execCommand(cmd, false, null);
-  }
-
-  function execCmdWithArg(cmd, arg) {
-    document.execCommand(cmd, false, arg);
-  }
-
-  // On content change, pass HTML to onChange
-  function handleInput(e) {
-    onChange(e.currentTarget.innerHTML);
-  }
-
-  return (
-    <div>
-      {/* Toolbar */}
-      <div className="rich-editor-toolbar">
-        <button type="button" onClick={() => execCmd("bold")}><b>B</b></button>
-        <button type="button" onClick={() => execCmd("italic")}><i>I</i></button>
-        <button type="button" onClick={() => execCmd("underline")}><u>U</u></button>
-        <button type="button" onClick={() => execCmd("insertUnorderedList")}>• List</button>
-        {/* Example of a link command: 
-            <button type="button" onClick={() => {
-              const url = prompt("Enter link URL");
-              if (url) execCmdWithArg("createLink", url);
-            }}>Link</button>
-        */}
-      </div>
-
-      {/* Editable Area */}
-      <div
-        ref={editorRef}
-        className="dnd-rich-editor"
-        contentEditable
-        onInput={handleInput}
-        dangerouslySetInnerHTML={{ __html: value }}
-        placeholder={placeholder}
-      />
-    </div>
-  );
-}
-
-/** ========== Lore (Rich text) ========== */
-function Lore() {
-  const [loreHTML, setLoreHTML] = React.useState(() => localStorage.getItem("loreText") || "");
-
-  React.useEffect(() => {
-    localStorage.setItem("loreText", loreHTML);
-  }, [loreHTML]);
-
-  return (
-    <div className="note-container">
-      <h2 className="section-header">Lore</h2>
-      <RichEditor
-        value={loreHTML}
-        onChange={setLoreHTML}
-        placeholder="Enter your world's lore here..."
-      />
-    </div>
-  );
-}
-
-/** ========== Campaign Notes (Rich text) ========== */
-function CampaignNotes() {
-  const [notesHTML, setNotesHTML] = React.useState(() => localStorage.getItem("campaignNotes") || "");
-
-  React.useEffect(() => {
-    localStorage.setItem("campaignNotes", notesHTML);
-  }, [notesHTML]);
-
-  return (
-    <div className="note-container">
-      <h2 className="section-header">Campaign Notes</h2>
-      <RichEditor
-        value={notesHTML}
-        onChange={setNotesHTML}
-        placeholder="Record your campaign notes here..."
-      />
-    </div>
-  );
-}
-
-/** ========== Shenanigans (Rich text) ========== */
-function Shenanigans() {
-  const [shenanigansHTML, setShenanigansHTML] = React.useState(() => localStorage.getItem("shenanigansText") || "");
-
-  React.useEffect(() => {
-    localStorage.setItem("shenanigansText", shenanigansHTML);
-  }, [shenanigansHTML]);
-
-  return (
-    <div className="note-container">
-      <h2 className="section-header">Shenanigans</h2>
-      <RichEditor
-        value={shenanigansHTML}
-        onChange={setShenanigansHTML}
-        placeholder="Note down memorable shenanigans here..."
-      />
-    </div>
-  );
-}
-
-/** ========== Quest Form & Quest Tracker (same as before) ========== */
-function QuestForm({ initialQuest, onSubmit, onCancel }) {
-  const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
-  const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : "");
-  const [reward, setReward] = React.useState(initialQuest ? initialQuest.reward : "");
-  const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : "Medium");
-  const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : "Not Started");
-  const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : "");
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!name.trim()) {
-      alert("Quest name is required");
-      return;
+    function execCmdWithArg(cmd, arg) {
+      if (editorRef.current) {
+        editorRef.current.focus();
+      }
+      document.execCommand(cmd, false, arg);
     }
-    onSubmit({ name, description, reward, difficulty, status, notes });
-  }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-amber-50 rounded">
-      <div>
-        <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Name</label>
-        <input
-          type="text"
-          className="dnd-rich-editor"
-          style={{ minHeight: 'auto' }}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Description</label>
-        <textarea
-          className="dnd-rich-editor"
-          style={{ minHeight: '60px' }}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter quest description"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Reward</label>
-        <input
-          type="text"
-          className="dnd-rich-editor"
-          style={{ minHeight: 'auto' }}
-          value={reward}
-          onChange={(e) => setReward(e.target.value)}
-          placeholder="Enter quest reward"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Difficulty</label>
-        <select
-          className="dnd-rich-editor"
-          style={{ minHeight: 'auto' }}
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-        >
-          <option value="Easy">Easy</option>
-          <option value="Medium">Medium</option>
-          <option value="Hard">Hard</option>
-          <option value="Legendary">Legendary</option>
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Status</label>
-        <select
-          className="dnd-rich-editor"
-          style={{ minHeight: 'auto' }}
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="Not Started">Not Started</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-          <option value="Failed">Failed</option>
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Notes</label>
-        <textarea
-          className="dnd-rich-editor"
-          style={{ minHeight: '60px' }}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Additional quest notes"
-        />
-      </div>
-      <div className="flex gap-2">
-        <button type="submit" className="btn-dnd rounded">Save</button>
-        <button type="button" onClick={onCancel} className="btn-dnd rounded">Cancel</button>
-      </div>
-    </form>
-  );
-}
-
-function QuestTracker() {
-  const [quests, setQuests] = React.useState(() => {
-    const saved = localStorage.getItem("quests");
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [formMode, setFormMode] = React.useState("none");
-
-  React.useEffect(() => {
-    localStorage.setItem("quests", JSON.stringify(quests));
-  }, [quests]);
-
-  const addQuest = () => setFormMode("add");
-  const editQuest = (id) => setFormMode(id);
-  const cancelForm = () => setFormMode("none");
-
-  const handleFormSubmit = (formData) => {
-    if (formMode === "add") {
-      const newQuest = { id: Date.now(), ...formData };
-      setQuests([...quests, newQuest]);
-    } else if (typeof formMode === "number") {
-      setQuests(quests.map((q) => (q.id === formMode ? { ...q, ...formData } : q)));
+    function handleInput(e) {
+      onChange(e.currentTarget.innerHTML);
     }
-    setFormMode("none");
-  };
 
-  const removeQuest = (id) => {
-    setQuests(quests.filter((q) => q.id !== id));
-  };
-
-  return (
-    <div className="note-container">
-      <h2 className="section-header">Quest Tracker</h2>
-      <p className="text-sm mb-2" style={{ color: "#4a2c0f" }}>
-        Manage your ongoing quests here.
-      </p>
-      <div className="mb-4">
-        <button className="btn-dnd rounded" onClick={addQuest}>Add New Quest</button>
-      </div>
-      {formMode === "add" && (
-        <QuestForm initialQuest={null} onSubmit={handleFormSubmit} onCancel={cancelForm} />
-      )}
-      <ul className="space-y-2">
-        {quests.map((quest) => (
-          <li
-            key={quest.id}
-            className="p-2 rounded shadow border border-[#4a3f35]"
-            style={{ backgroundColor: "#f9efd4" }}
-          >
-            {formMode === quest.id ? (
-              <QuestForm
-                initialQuest={quest}
-                onSubmit={handleFormSubmit}
-                onCancel={cancelForm}
-              />
-            ) : (
-              <div className="flex justify-between items-center">
-                <span style={{ color: "#4a2c0f" }}>
-                  {quest.name} — {quest.difficulty} — {quest.status}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    className="btn-dnd rounded"
-                    onClick={() => editQuest(quest.id)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn-dnd rounded"
-                    onClick={() => removeQuest(quest.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-      {quests.length === 0 && (
-        <p className="text-sm" style={{ color: "#4a2c0f" }}>
-          No quests yet. Add one to get started!
-        </p>
-      )}
-    </div>
-  );
-}
-
-/** ========== Main App Component ========== */
-function App() {
-  return (
-    <div className="p-4">
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-        <DarkModeToggle />
-        <div className="flex gap-2">
-          <button className="btn-dnd rounded" onClick={backupLocalStorage}>
-            Backup LocalStorage
-          </button>
-          <button className="btn-dnd rounded" onClick={copyForPrompt}>
-            Copy for Prompt
-          </button>
-          <label className="btn-dnd rounded cursor-pointer text-sm flex items-center px-2">
-            Choose File
-            <input
-              type="file"
-              accept=".json"
-              onChange={(e) => restoreLocalStorage(e.target.files)}
-              className="hidden"
-            />
-          </label>
+    return (
+      <div>
+        <div className="rich-editor-toolbar">
+          <button type="button" onClick={() => execCmd("bold")}><b>B</b></button>
+          <button type="button" onClick={() => execCmd("italic")}><i>I</i></button>
+          <button type="button" onClick={() => execCmd("underline")}><u>U</u></button>
+          <button type="button" onClick={() => execCmd("insertUnorderedList")}>• List</button>
+          {/* Additional buttons can be added here */}
         </div>
+        <div
+          ref={editorRef}
+          className="dnd-rich-editor"
+          contentEditable
+          onInput={handleInput}
+          dangerouslySetInnerHTML={{ __html: value }}
+          placeholder={placeholder}
+        />
       </div>
+    );
+  }
 
-      <Lore />
-      <CampaignNotes />
-      <Shenanigans />
-      <QuestTracker />
-    </div>
-  );
-}
+  /** LORE COMPONENT (Rich Text) **/
+  function Lore() {
+    const [loreHTML, setLoreHTML] = React.useState(() => localStorage.getItem("loreText") || "");
+    React.useEffect(() => {
+      localStorage.setItem("loreText", loreHTML);
+    }, [loreHTML]);
+    return (
+      <div className="note-container">
+        <h2 className="section-header">Lore</h2>
+        <RichEditor
+          value={loreHTML}
+          onChange={setLoreHTML}
+          placeholder="Enter your world's lore here..."
+        />
+      </div>
+    );
+  }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+  /** CAMPAIGN NOTES COMPONENT (Rich Text) **/
+  function CampaignNotes() {
+    const [notesHTML, setNotesHTML] = React.useState(() => localStorage.getItem("campaignNotes") || "");
+    React.useEffect(() => {
+      localStorage.setItem("campaignNotes", notesHTML);
+    }, [notesHTML]);
+    return (
+      <div className="note-container">
+        <h2 className="section-header">Campaign Notes</h2>
+        <RichEditor
+          value={notesHTML}
+          onChange={setNotesHTML}
+          placeholder="Record your campaign notes here..."
+        />
+      </div>
+    );
+  }
+
+  /** SHENANIGANS COMPONENT (Rich Text) **/
+  function Shenanigans() {
+    const [shenanigansHTML, setShenanigansHTML] = React.useState(() => localStorage.getItem("shenanigansText") || "");
+    React.useEffect(() => {
+      localStorage.setItem("shenanigansText", shenanigansHTML);
+    }, [shenanigansHTML]);
+    return (
+      <div className="note-container">
+        <h2 className="section-header">Shenanigans</h2>
+        <RichEditor
+          value={shenanigansHTML}
+          onChange={setShenanigansHTML}
+          placeholder="Note down memorable shenanigans here..."
+        />
+      </div>
+    );
+  }
+
+  /** QUEST FORM COMPONENT **/
+  function QuestForm({ initialQuest, onSubmit, onCancel }) {
+    const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
+    const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : "");
+    const [reward, setReward] = React.useState(initialQuest ? initialQuest.reward : "");
+    const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : "Medium");
+    const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : "Not Started");
+    const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : "");
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      if (!name.trim()) {
+        alert("Quest name is required");
+        return;
+      }
+      onSubmit({ name, description, reward, difficulty, status, notes });
+    }
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-amber-50 rounded">
+        <div>
+          <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Name</label>
+          <input
+            type="text"
+            className="dnd-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Description</label>
+          <textarea
+            className="dnd-textarea"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter quest description"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Reward</label>
+          <input
+            type="text"
+            className="dnd-input"
+            value={reward}
+            onChange={(e) => setReward(e.target.value)}
+            placeholder="Enter quest reward"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Difficulty</label>
+          <select
+            className="dnd-input"
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+          >
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+            <option value="Legendary">Legendary</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Status</label>
+          <select
+            className="dnd-input"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium" style={{ color: "#4a2c0f" }}>Notes</label>
+          <textarea
+            className="dnd-textarea"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Additional quest notes"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button type="submit" className="btn-dnd rounded">Save</button>
+          <button type="button" onClick={onCancel} className="btn-dnd rounded">Cancel</button>
+        </div>
+      </form>
+    );
+  }
+
+  /** QUEST TRACKER COMPONENT **/
+  function QuestTracker() {
+    const [quests, setQuests] = React.useState(() => {
+      const saved = localStorage.getItem("quests");
+      return saved ? JSON.parse(saved) : [];
+    });
+    const [formMode, setFormMode] = React.useState("none");
+
+    React.useEffect(() => {
+      localStorage.setItem("quests", JSON.stringify(quests));
+    }, [quests]);
+
+    const addQuest = () => setFormMode("add");
+    const editQuest = (id) => setFormMode(id);
+    const cancelForm = () => setFormMode("none");
+
+    const handleFormSubmit = (formData) => {
+      if (formMode === "add") {
+        const newQuest = { id: Date.now(), ...formData };
+        setQuests([...quests, newQuest]);
+      } else if (typeof formMode === "number") {
+        setQuests(quests.map((q) => (q.id === formMode ? { ...q, ...formData } : q)));
+      }
+      setFormMode("none");
+    };
+
+    const removeQuest = (id) => {
+      setQuests(quests.filter((q) => q.id !== id));
+    };
+
+    return (
+      <div className="note-container">
+        <h2 className="section-header">Quest Tracker</h2>
+        <p className="text-sm mb-2" style={{ color: "#4a2c0f" }}>Manage your ongoing quests here.</p>
+        <div className="mb-4">
+          <button className="btn-dnd rounded" onClick={addQuest}>Add New Quest</button>
+        </div>
+        {formMode === "add" && (
+          <QuestForm initialQuest={null} onSubmit={handleFormSubmit} onCancel={cancelForm} />
+        )}
+        <ul className="space-y-2">
+          {quests.map((quest) => (
+            <li key={quest.id} className="p-2 rounded shadow border border-[#4a3f35]" style={{ backgroundColor: "#f9efd4" }}>
+              {formMode === quest.id ? (
+                <QuestForm initialQuest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} />
+              ) : (
+                <div className="flex justify-between items-center">
+                  <span style={{ color: "#4a2c0f" }}>
+                    {quest.name} — {quest.difficulty} — {quest.status}
+                  </span>
+                  <div className="flex gap-2">
+                    <button className="btn-dnd rounded" onClick={() => editQuest(quest.id)}>Edit</button>
+                    <button className="btn-dnd rounded" onClick={() => removeQuest(quest.id)}>Delete</button>
+                  </div>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+        {quests.length === 0 && (
+          <p className="text-sm" style={{ color: "#4a2c0f" }}>No quests yet. Add one to get started!</p>
+        )}
+      </div>
+    );
+  }
+
+  /** APP COMPONENT **/
+  function App() {
+    return (
+      <div className="p-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+          <DarkModeToggle />
+          <div className="flex gap-2">
+            <button className="btn-dnd rounded" onClick={backupLocalStorage}>Backup LocalStorage</button>
+            <button className="btn-dnd rounded" onClick={copyForPrompt}>Copy for Prompt</button>
+            <label className="btn-dnd rounded cursor-pointer text-sm flex items-center px-2">
+              Choose File
+              <input type="file" accept=".json" onChange={(e) => restoreLocalStorage(e.target.files)} className="hidden" />
+            </label>
+          </div>
+        </div>
+        <Lore />
+        <CampaignNotes />
+        <Shenanigans />
+        <QuestTracker />
+      </div>
+    );
+  }
+
+  ReactDOM.render(<App />, document.getElementById("root"));
 </script>
 </body>
 </html>
