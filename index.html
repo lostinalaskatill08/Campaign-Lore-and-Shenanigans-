@@ -46,34 +46,65 @@
       resize: vertical;
       min-height: 100px;
     }
+    /* Unified Button Style */
+    .btn-dnd {
+      background-color: #8B0000;
+      color: #f4e4bc;
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      border: 1px solid #4a3f35;
+      transition: all 0.3s ease;
+      padding: 0.75rem 1rem;
+    }
+    .btn-dnd:hover {
+      background-color: #6d0101;
+    }
+    /* Section Headers */
+    .section-header {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #f4e4bc;
+    }
+    /* Container for Campaign Components */
+    .note-container {
+      background-color: #f9efd4;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+      margin-bottom: 1rem;
+    }
+    /* Textareas styled like previous sheets */
+    .note-textarea {
+      width: 100%;
+      border: 1px solid #4a3f35;
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+      background-color: #fff;
+      color: #4a2c0f;
+    }
   </style>
 </head>
-
 <body class="text-gray-800">
   <div id="root"></div>
-
+  
   <script type="text/babel">
-    // Dark Mode Toggle Component
+    /** DARK MODE TOGGLE **/
     function DarkModeToggle() {
       const [darkMode, setDarkMode] = React.useState(() => localStorage.getItem("darkMode") === "true");
-
       React.useEffect(() => {
         if (darkMode) document.body.classList.add("dark");
         else document.body.classList.remove("dark");
         localStorage.setItem("darkMode", darkMode);
       }, [darkMode]);
-
       return (
-        <button
-          className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
-          onClick={() => setDarkMode(!darkMode)}
-        >
+        <button className="px-3 py-1 btn-dnd rounded" onClick={() => setDarkMode(!darkMode)}>
           {darkMode ? "Light Mode" : "Dark Mode"}
         </button>
       );
     }
-
-    // LocalStorage Backup Function
+    
+    /** BACKUP LOCALSTORAGE FUNCTION **/
     function backupLocalStorage() {
       const data = {
         loreText: localStorage.getItem("loreText"),
@@ -90,8 +121,8 @@
       a.click();
       URL.revokeObjectURL(url);
     }
-
-    // LocalStorage Restore Function
+    
+    /** RESTORE LOCALSTORAGE FUNCTION **/
     function restoreLocalStorage(files) {
       if (!files || !files.length) return;
       const file = files[0];
@@ -112,88 +143,82 @@
       };
       reader.readAsText(file);
     }
-
-    // Copy for Prompt Function
+    
+    /** COPY FOR PROMPT FUNCTION **/
     function copyForPrompt() {
       const data = {
         lore: localStorage.getItem("loreText") || "",
         campaignNotes: localStorage.getItem("campaignNotes") || "",
         shenanigans: localStorage.getItem("shenanigansText") || "",
-        quests: JSON.parse(localStorage.getItem("quests") || "[]"),
+        quests: JSON.parse(localStorage.getItem("quests") || "[]")
       };
       const jsonString = JSON.stringify(data, null, 2);
-      navigator.clipboard.writeText(jsonString).then(() => {
-        alert("Data copied to clipboard!");
-      }).catch((err) => {
-        console.error("Failed to copy: ", err);
-        alert("Failed to copy data to clipboard.");
-      });
+      navigator.clipboard.writeText(jsonString)
+        .then(() => alert("Data copied to clipboard!"))
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          alert("Failed to copy data to clipboard.");
+        });
     }
-
-    // Lore Component
+    
+    /** LORE COMPONENT **/
     function Lore() {
       const [loreText, setLoreText] = React.useState(() => localStorage.getItem("loreText") || "");
-
       React.useEffect(() => {
         localStorage.setItem("loreText", loreText);
       }, [loreText]);
-
       return (
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h2 className="text-xl font-bold mb-2">Lore</h2>
+        <div className="note-container">
+          <h2 className="section-header">Lore</h2>
           <textarea
             value={loreText}
             onChange={(e) => setLoreText(e.target.value)}
-            className="w-full border p-2 rounded bg-white text-gray-800"
+            className="note-textarea"
             placeholder="Enter your world's lore here..."
           />
         </div>
       );
     }
-
-    // Campaign Notes Component
+    
+    /** CAMPAIGN NOTES COMPONENT **/
     function CampaignNotes() {
       const [notesText, setNotesText] = React.useState(() => localStorage.getItem("campaignNotes") || "");
-
       React.useEffect(() => {
         localStorage.setItem("campaignNotes", notesText);
       }, [notesText]);
-
       return (
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h2 className="text-xl font-bold mb-2">Campaign Notes</h2>
+        <div className="note-container">
+          <h2 className="section-header">Campaign Notes</h2>
           <textarea
             value={notesText}
             onChange={(e) => setNotesText(e.target.value)}
-            className="w-full border p-2 rounded bg-white text-gray-800"
+            className="note-textarea"
             placeholder="Record your campaign notes here..."
           />
         </div>
       );
     }
-
-    // Shenanigans Component
+    
+    /** SHENANIGANS COMPONENT **/
     function Shenanigans() {
       const [shenanigansText, setShenanigansText] = React.useState(() => localStorage.getItem("shenanigansText") || "");
-
       React.useEffect(() => {
         localStorage.setItem("shenanigansText", shenanigansText);
       }, [shenanigansText]);
-
       return (
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h2 className="text-xl font-bold mb-2">Shenanigans</h2>
+        <div className="note-container">
+          <h2 className="section-header">Shenanigans</h2>
           <textarea
             value={shenanigansText}
             onChange={(e) => setShenanigansText(e.target.value)}
-            className="w-full border p-2 rounded bg-white text-gray-800"
+            className="note-textarea"
             placeholder="Note down memorable shenanigans here..."
           />
         </div>
       );
     }
-
-    // QuestForm Component
+    
+    /** QUEST FORM COMPONENT **/
     function QuestForm({ initialQuest, onSubmit, onCancel }) {
       const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
       const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : "");
@@ -201,7 +226,7 @@
       const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : "Medium");
       const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : "Not Started");
       const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : "");
-
+    
       const handleSubmit = (e) => {
         e.preventDefault();
         if (!name.trim()) {
@@ -210,11 +235,11 @@
         }
         onSubmit({ name, description, reward, difficulty, status, notes });
       };
-
+    
       return (
         <form onSubmit={handleSubmit} className="space-y-2 p-2 bg-gray-50 rounded">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-amber-400">Name</label>
             <input
               type="text"
               value={name}
@@ -224,7 +249,7 @@
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-amber-400">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -233,7 +258,7 @@
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Reward</label>
+            <label className="block text-sm font-medium text-amber-400">Reward</label>
             <input
               type="text"
               value={reward}
@@ -243,7 +268,7 @@
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Difficulty</label>
+            <label className="block text-sm font-medium text-amber-400">Difficulty</label>
             <select
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value)}
@@ -256,7 +281,7 @@
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
+            <label className="block text-sm font-medium text-amber-400">Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
@@ -269,7 +294,7 @@
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Notes</label>
+            <label className="block text-sm font-medium text-amber-400">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -280,14 +305,14 @@
           <div className="flex gap-2">
             <button
               type="submit"
-              className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+              className="px-3 py-1 btn-dnd rounded"
             >
               Save
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              className="px-3 py-1 btn-dnd rounded"
             >
               Cancel
             </button>
@@ -295,23 +320,23 @@
         </form>
       );
     }
-
-    // QuestTracker Component
+    
+    /** QUEST TRACKER COMPONENT **/
     function QuestTracker() {
       const [quests, setQuests] = React.useState(() => {
         const saved = localStorage.getItem("quests");
         return saved ? JSON.parse(saved) : [];
       });
       const [formMode, setFormMode] = React.useState("none");
-
+    
       React.useEffect(() => {
         localStorage.setItem("quests", JSON.stringify(quests));
       }, [quests]);
-
+    
       const addQuest = () => setFormMode("add");
       const editQuest = (id) => setFormMode(id);
       const cancelForm = () => setFormMode("none");
-
+    
       const handleFormSubmit = (formData) => {
         if (formMode === "add") {
           const newQuest = { id: Date.now(), ...formData };
@@ -321,18 +346,18 @@
         }
         setFormMode("none");
       };
-
+    
       const removeQuest = (id) => {
         setQuests(quests.filter((q) => q.id !== id));
       };
-
+    
       return (
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <h2 className="text-xl font-bold mb-2">Quest Tracker</h2>
+        <div className="note-container">
+          <h2 className="section-header">Quest Tracker</h2>
           <p className="text-sm text-gray-700 mb-2">Manage your ongoing quests here.</p>
           <div className="mb-4">
             <button
-              className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+              className="px-3 py-1 btn-dnd rounded"
               onClick={addQuest}
             >
               Add New Quest
@@ -356,18 +381,16 @@
                   />
                 ) : (
                   <div className="flex justify-between items-center">
-                    <span>
-                      {quest.name} - {quest.difficulty} - {quest.status}
-                    </span>
+                    <span className="text-amber-400">{quest.name} - {quest.difficulty} - {quest.status}</span>
                     <div>
                       <button
-                        className="text-blue-500 hover:text-blue-700 mr-2"
+                        className="px-3 py-1 btn-dnd rounded mr-2"
                         onClick={() => editQuest(quest.id)}
                       >
                         Edit
                       </button>
                       <button
-                        className="text-red-500 hover:text-red-700"
+                        className="px-3 py-1 btn-dnd rounded"
                         onClick={() => removeQuest(quest.id)}
                       >
                         Delete
@@ -384,8 +407,8 @@
         </div>
       );
     }
-
-    // App Component
+    
+    /** APP COMPONENT **/
     function App() {
       return (
         <div className="p-4">
@@ -393,13 +416,13 @@
             <DarkModeToggle />
             <div className="flex gap-2">
               <button
-                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+                className="px-3 py-1 btn-dnd rounded"
                 onClick={backupLocalStorage}
               >
                 Backup LocalStorage
               </button>
               <button
-                className="px-3 py-1 bg-amber-700 text-white rounded hover:bg-amber-800"
+                className="px-3 py-1 btn-dnd rounded"
                 onClick={copyForPrompt}
               >
                 Copy for Prompt
@@ -421,8 +444,7 @@
         </div>
       );
     }
-
-    // Render the App
+    
     ReactDOM.render(<App />, document.getElementById("root"));
   </script>
 </body>
