@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <title>Campaign Notes with Item Lists</title>
+  <title>Campaign Journal with Item Lists</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,6 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
 
   <style>
+    /* Base Styles */
     body {
       font-family: 'Cormorant Garamond', serif;
       background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
@@ -31,6 +32,7 @@
       color: #fafafa;
       background-blend-mode: normal;
     }
+    /* Scrollbar Styles */
     ::-webkit-scrollbar {
       width: 12px;
     }
@@ -42,7 +44,7 @@
       border-radius: 20px;
       border: 3px solid #f5e8c7;
     }
-    /* Button style */
+    /* Button Style */
     .btn-dnd {
       background-color: #8B0000;
       color: #f4e4bc;
@@ -57,7 +59,7 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    /* Section header style */
+    /* Section Header */
     .section-header {
       font-size: 1.5rem;
       font-weight: bold;
@@ -73,7 +75,7 @@
       background-image: linear-gradient(to right, transparent, #8b5a2b, transparent);
       margin-top: 0.25rem;
     }
-    /* Container style for each section */
+    /* Container for Each Section */
     .note-container {
       background-color: #f9efd4;
       padding: 1.5rem;
@@ -81,7 +83,7 @@
       box-shadow: 0 0 15px rgba(0,0,0,0.15);
       margin-bottom: 2rem;
     }
-    /* Input field styling */
+    /* Input Field Styles */
     .dnd-input {
       width: 100%;
       border: 1px solid #8b5a2b;
@@ -108,7 +110,6 @@
     /**********************
      * Utility Functions
      **********************/
-    // Backup localStorage to a JSON file
     function backupLocalStorage() {
       const data = {
         loreItems: localStorage.getItem("loreItems"),
@@ -126,7 +127,6 @@
       URL.revokeObjectURL(url);
     }
 
-    // Restore localStorage from a JSON file
     function restoreLocalStorage(files) {
       if (!files || !files.length) return;
       const file = files[0];
@@ -148,7 +148,6 @@
       reader.readAsText(file);
     }
 
-    // Copy data for prompt (all sections)
     function copyForPrompt() {
       const data = {
         lore: JSON.parse(localStorage.getItem("loreItems") || "[]"),
@@ -166,7 +165,7 @@
     }
 
     /**********************
-     * Reusable Item Tracker Component
+     * ItemTracker Component
      * Used for Lore, Campaign Notes, and Shenanigans
      **********************/
     function ItemTracker({ title, storageKey, placeholder }) {
@@ -258,7 +257,7 @@
     }
 
     /**********************
-     * Components for Lore, Campaign Notes, Shenanigans
+     * Lore, Campaign Notes, Shenanigans Components
      **********************/
     function LoreSection() {
       return (
@@ -291,7 +290,7 @@
     }
 
     /**********************
-     * QUEST TRACKER (unchanged from previous version)
+     * QUEST TRACKER COMPONENT
      **********************/
     function QuestForm({ initialQuest, onSubmit, onCancel }) {
       const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
@@ -426,9 +425,7 @@
           <h2 className="section-header">Quest Tracker</h2>
           <div className="scroll-content">
             <div className="flex flex-wrap justify-between items-center mb-4">
-              <button className="btn-dnd rounded py-2 px-4" onClick={addQuest}>
-                Add New Quest
-              </button>
+              <button className="btn-dnd rounded py-2 px-4" onClick={addQuest}>Add New Quest</button>
               <div className="flex items-center">
                 <label className="mr-2 font-bold text-sm">Filter:</label>
                 <select 
@@ -457,7 +454,7 @@
                       <QuestForm initialQuest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} />
                     ) : (
                       <div className="quest-item mb-4 shadow border border-[#4a3f35] rounded">
-                        <div className="quest-header" onClick={() => {}}>
+                        <div className="quest-header">
                           <h3 className="font-bold">{quest.name}</h3>
                           <div className="flex gap-2 items-center">
                             <span className="text-sm px-2 py-1 bg-amber-100 rounded">{quest.status}</span>
