@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <title>Campaign Notes with Simplified Rich Text</title>
+  <title>Campaign Notes with Forced LTR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -20,6 +20,7 @@
       background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
       background-blend-mode: overlay;
       color: #4a2c0f;
+      direction: ltr; /* Force LTR in the body as well */
     }
     .dark {
       background-color: #1a1a1a;
@@ -102,6 +103,9 @@
       padding: 0.75rem;
       outline: none;
       white-space: pre-wrap;
+      direction: ltr; /* Force LTR direction in the editor */
+      unicode-bidi: bidi-override; /* Override any hidden RTL markers */
+      text-align: left; /* Force text to align left */
     }
   </style>
 </head>
@@ -180,11 +184,10 @@
         });
     }
 
-    /** Simple RichEditor Without Bullets **/
+    /** Simple RichEditor (Bold, Italic, Underline) */
     function RichEditor({ value, onChange, placeholder }) {
       const editorRef = React.useRef(null);
 
-      // Simple command execution for bold/italic/underline only
       function execCmd(cmd) {
         if (editorRef.current) {
           editorRef.current.focus();
