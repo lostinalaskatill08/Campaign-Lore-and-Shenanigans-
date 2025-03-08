@@ -336,6 +336,121 @@
       padding: 1rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+    /* New styles for improved journal */
+    .journal-card {
+      background-color: #1e2a38;
+      border-radius: 0.5rem;
+      border: 1px solid #4a3f35;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      color: #f4e4bc;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .journal-section {
+      margin-bottom: 1.5rem;
+    }
+    .journal-section-title {
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      font-size: 1.25rem;
+      color: #f4e4bc;
+      border-bottom: 2px solid #8B0000;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .journal-entry {
+      background-color: #243447;
+      border: 1px solid #4a3f35;
+      border-radius: 0.375rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    .journal-entry:hover {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .entry-title {
+      font-weight: bold;
+      color: #f4e4bc;
+    }
+    .entry-badge {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      background-color: #8B0000;
+    }
+    .rarity-common {
+      background-color: #4b5563;
+    }
+    .rarity-uncommon {
+      background-color: #10b981;
+    }
+    .rarity-rare {
+      background-color: #3b82f6;
+    }
+    .rarity-very-rare {
+      background-color: #8b5cf6;
+    }
+    .rarity-legendary {
+      background-color: #f59e0b;
+    }
+    .rarity-artifact {
+      background-color: #ef4444;
+    }
+    .npc-friendly {
+      background-color: #10b981;
+    }
+    .npc-neutral {
+      background-color: #6b7280;
+    }
+    .npc-hostile {
+      background-color: #ef4444;
+    }
+    .location-urban {
+      background-color: #6b7280;
+    }
+    .location-wilderness {
+      background-color: #10b981;
+    }
+    .location-dungeon {
+      background-color: #8b5cf6;
+    }
+    .timeline-container {
+      position: relative;
+      padding-left: 1.5rem;
+    }
+    .timeline-container::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: #8B0000;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -0.4rem;
+      top: 0.5rem;
+      width: 0.8rem;
+      height: 0.8rem;
+      border-radius: 50%;
+      background-color: #8B0000;
+    }
+    .feature-list {
+      list-style-type: decimal;
+      padding-left: 1.5rem;
+    }
+    .feature-list li {
+      margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -346,7 +461,7 @@
      **********************/
     function backupLocalStorage() {
       const data = {
-        campaignItems: localStorage.getItem("campaignItems"),
+        campaignLore: localStorage.getItem("campaignLore"),
         eventTimeline: localStorage.getItem("eventTimeline"),
         mapLocations: localStorage.getItem("mapLocations"),
         npcs: localStorage.getItem("npcs"),
@@ -386,7 +501,7 @@
 
     function copyForPrompt() {
       const data = {
-        campaignItems: JSON.parse(localStorage.getItem("campaignItems") || "[]"),
+        campaignLore: JSON.parse(localStorage.getItem("campaignLore") || "[]"),
         eventTimeline: JSON.parse(localStorage.getItem("eventTimeline") || "[]"),
         mapLocations: JSON.parse(localStorage.getItem("mapLocations") || "[]"),
         npcs: JSON.parse(localStorage.getItem("npcs") || "[]"),
@@ -399,8 +514,8 @@
       
       // Campaign Lore
       promptText += "## Campaign Lore\n";
-      data.campaignItems.forEach(item => {
-        promptText += `- ${item.title} (${item.type}): ${item.content}\n`;
+      data.campaignLore.forEach(item => {
+        promptText += `- ${item.title}: ${item.description}\n`;
       });
       
       // Event Timeline
@@ -412,13 +527,13 @@
       // Locations
       promptText += "\n## Locations\n";
       data.mapLocations.forEach(location => {
-        promptText += `- ${location.name} (${location.type}): ${location.description}\n`;
+        promptText += `- ${location.name} (${location.locationType}): ${location.description}\n`;
       });
       
       // NPCs
       promptText += "\n## NPCs\n";
       data.npcs.forEach(npc => {
-        promptText += `- ${npc.name} (${npc.race}/${npc.occupation}): ${npc.personality}\n`;
+        promptText += `- ${npc.name} (${npc.race}/${npc.occupation}): ${npc.personality}\n${npc.description ? `  ${npc.description}\n` : ''}`;
       });
       
       // Magic Items
@@ -428,9 +543,9 @@
       });
       
       // Shenanigans
-      promptText += "\n## Shenanigans\n";
+      promptText += "\n## Shenanigans & Memorable Moments\n";
       data.shenanigans.forEach(shenanigan => {
-        promptText += `- ${shenanigan.title}: ${shenanigan.description}\n`;
+        promptText += `- ${shenanigan.title} (Session ${shenanigan.session || 'N/A'}): ${shenanigan.description}\n`;
       });
       
       navigator.clipboard.writeText(promptText)
@@ -463,378 +578,1539 @@
     }
 
     /**********************
-     * Campaign Item Component
+     * Collapsible Section Component
      **********************/
-    function CampaignItem({ item, onEdit, onDelete, onTagAdd, onTagRemove }) {
-      const [isExpanded, setIsExpanded] = React.useState(false);
-      const [newTag, setNewTag] = React.useState("");
-
-      const typeClasses = {
-        "Lore": "type-lore",
-        "NPC": "type-npc",
-        "Location": "type-location",
-        "Event": "type-event",
-        "Item": "type-item",
-        "Shenanigan": "type-shenanigan",
-        "Note": "type-note"
-      };
-
-      function handleAddTag(e) {
-        e.preventDefault();
-        if (newTag.trim()) {
-          onTagAdd(item.id, newTag.trim());
-          setNewTag("");
-        }
-      }
-
+    function CollapsibleSection({ title, children, defaultExpanded = true }) {
+      const [isExpanded, setIsExpanded] = React.useState(defaultExpanded);
+      
       return (
-        <div className="item-card">
-          <div className="card-top">
-            <div className="flex items-center">
-              <span className={`item-type ${typeClasses[item.type] || "type-note"}`}>{item.type}</span>
-              <h3 className="item-title" onClick={() => setIsExpanded(!isExpanded)}>
-                {item.title}
-              </h3>
-            </div>
-            <div className="card-actions">
-              <button 
-                className="bg-amber-700 text-white rounded px-2 py-1 text-sm hover:bg-amber-800"
-                onClick={() => onEdit(item)}
-              >
-                Edit
-              </button>
-              <button 
-                className="btn-dnd rounded px-2 py-1 text-sm"
-                onClick={() => {
-                  if (window.confirm(`Are you sure you want to delete "${item.title}"?`)) {
-                    onDelete(item.id);
-                  }
-                }}
-              >
-                Delete
-              </button>
-            </div>
+        <div className="journal-section mb-4">
+          <div 
+            className="flex justify-between items-center cursor-pointer" 
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <h2 className="text-xl font-bold text-amber-400">
+              {isExpanded ? "▼ " : "▶ "}{title}
+            </h2>
           </div>
-          
-          <div className="collapsible-content" style={{ maxHeight: isExpanded ? "1000px" : "0px" }}>
-            <div className="card-content">
-              {item.content}
-            </div>
-            
-            {item.image && (
-              <div className="image-container">
-                <img src={item.image} alt={item.title} />
-              </div>
-            )}
-            
-            <div className="mt-3">
-              <div className="mb-2">
-                {item.tags && item.tags.map((tag, index) => (
-                  <span key={index} className="tag">
-                    {tag}
-                    <button 
-                      className="ml-1 text-red-400 hover:text-red-600"
-                      onClick={() => onTagRemove(item.id, index)}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-              
-              <form onSubmit={handleAddTag} className="flex gap-2">
-                <input
-                  type="text"
-                  className="dnd-input py-1 text-sm"
-                  placeholder="Add a tag..."
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                />
-                <button 
-                  type="submit"
-                  className="btn-dnd rounded px-2 py-1 text-sm"
-                >
-                  Add
-                </button>
-              </form>
-            </div>
+          <div 
+            className="collapsible-content transition-all duration-300 ease-in-out" 
+            style={{ maxHeight: isExpanded ? "9999px" : "0px", overflow: "hidden" }}
+          >
+            {children}
           </div>
         </div>
       );
     }
 
     /**********************
-     * Campaign Item Form
+     * Campaign Lore Component
      **********************/
-    function CampaignItemForm({ item, onSave, onCancel }) {
-      const [title, setTitle] = React.useState(item ? item.title : "");
-      const [content, setContent] = React.useState(item ? item.content : "");
-      const [type, setType] = React.useState(item ? item.type : "Lore");
-      const [image, setImage] = React.useState(item ? item.image : null);
-      const [imagePreview, setImagePreview] = React.useState(item ? item.image : null);
+    function CampaignLoreSection() {
+      const [loreEntries, setLoreEntries] = React.useState(() => {
+        const saved = localStorage.getItem("campaignLore");
+        return saved ? JSON.parse(saved) : [];
+      });
       
-      const typeOptions = ["Lore", "NPC", "Location", "Event", "Item", "Shenanigan", "Note"];
+      const [showLoreForm, setShowLoreForm] = React.useState(false);
+      const [editingLore, setEditingLore] = React.useState(null);
       
-      function handleSubmit(e) {
-        e.preventDefault();
-        if (!title.trim()) {
+      const [newLoreTitle, setNewLoreTitle] = React.useState("");
+      const [newLoreDesc, setNewLoreDesc] = React.useState("");
+      
+      React.useEffect(() => {
+        localStorage.setItem("campaignLore", JSON.stringify(loreEntries));
+      }, [loreEntries]);
+      
+      function addLoreEntry() {
+        if (!newLoreTitle.trim()) {
           alert("Title is required");
           return;
         }
         
-        onSave({
-          id: item ? item.id : Date.now(),
-          title: title.trim(),
-          content: content.trim(),
-          type,
-          image,
-          tags: item ? item.tags || [] : [],
-          created: item ? item.created : new Date().toISOString(),
-          updated: new Date().toISOString()
-        });
+        if (editingLore) {
+          setLoreEntries(loreEntries.map(entry => 
+            entry.id === editingLore.id 
+              ? { ...entry, title: newLoreTitle, description: newLoreDesc } 
+              : entry
+          ));
+        } else {
+          setLoreEntries([
+            ...loreEntries, 
+            { 
+              id: Date.now(), 
+              title: newLoreTitle, 
+              description: newLoreDesc,
+              createdAt: new Date().toISOString()
+            }
+          ]);
+        }
+        
+        setNewLoreTitle("");
+        setNewLoreDesc("");
+        setEditingLore(null);
+        setShowLoreForm(false);
       }
+      
+      function editLore(lore) {
+        setEditingLore(lore);
+        setNewLoreTitle(lore.title);
+        setNewLoreDesc(lore.description);
+        setShowLoreForm(true);
+      }
+      
+      function deleteLore(id) {
+        if (window.confirm("Are you sure you want to delete this lore entry?")) {
+          setLoreEntries(loreEntries.filter(entry => entry.id !== id));
+        }
+      }
+      
+      return (
+        <CollapsibleSection title="Campaign Lore">
+          <div className="mb-3">
+            <p className="text-amber-300 mb-2">Record key facts, legends, and world-building elements of your campaign.</p>
+            <button 
+              className="btn-dnd rounded" 
+              onClick={() => {
+                setEditingLore(null);
+                setNewLoreTitle("");
+                setNewLoreDesc("");
+                setShowLoreForm(!showLoreForm);
+              }}
+            >
+              {showLoreForm ? "Cancel" : "Add Lore Entry"}
+            </button>
+          </div>
+          
+          {showLoreForm && (
+            <div className="journal-card mb-4">
+              <h3 className="text-amber-400 font-bold mb-2">{editingLore ? "Edit" : "Add"} Lore Entry</h3>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Title</label>
+                <input 
+                  type="text" 
+                  className="dnd-input" 
+                  value={newLoreTitle}
+                  onChange={(e) => setNewLoreTitle(e.target.value)}
+                  placeholder="Title of lore element"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Description</label>
+                <textarea 
+                  className="dnd-input" 
+                  rows="3" 
+                  value={newLoreDesc}
+                  onChange={(e) => setNewLoreDesc(e.target.value)}
+                  placeholder="Describe this piece of lore"
+                ></textarea>
+              </div>
+              <div className="flex justify-end">
+                <button className="btn-dnd rounded" onClick={addLoreEntry}>
+                  {editingLore ? "Update" : "Save"} Lore
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {loreEntries.length > 0 ? (
+            <div className="space-y-3">
+              {loreEntries.map(lore => (
+                <div key={lore.id} className="journal-entry">
+                  <div className="entry-header">
+                    <h3 className="entry-title">{lore.title}</h3>
+                    <div className="flex gap-2">
+                      <button 
+                        className="bg-amber-700 text-white rounded px-2 py-1 text-xs hover:bg-amber-800"
+                        onClick={() => editLore(lore)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="btn-dnd rounded px-2 py-1 text-xs"
+                        onClick={() => deleteLore(lore.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-amber-200 mt-2 whitespace-pre-line">{lore.description}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">No lore entries yet. Add one to start building your world.</p>
+          )}
+        </CollapsibleSection>
+      );
+    }
+
+    /**********************
+     * NPC Component
+     **********************/
+    function NPCSection() {
+      const [npcs, setNpcs] = React.useState(() => {
+        const saved = localStorage.getItem("npcs");
+        return saved ? JSON.parse(saved) : [];
+      });
+      
+      const [showNpcForm, setShowNpcForm] = React.useState(false);
+      const [editingNpc, setEditingNpc] = React.useState(null);
+      
+      const [newNpcName, setNewNpcName] = React.useState("");
+      const [newNpcRace, setNewNpcRace] = React.useState("");
+      const [newNpcOccupation, setNewNpcOccupation] = React.useState("");
+      const [newNpcAlignment, setNewNpcAlignment] = React.useState("Neutral");
+      const [newNpcDisposition, setNewNpcDisposition] = React.useState("Neutral");
+      const [newNpcPersonality, setNewNpcPersonality] = React.useState("");
+      const [newNpcDescription, setNewNpcDescription] = React.useState("");
+      const [newNpcImage, setNewNpcImage] = React.useState(null);
+      
+      React.useEffect(() => {
+        localStorage.setItem("npcs", JSON.stringify(npcs));
+      }, [npcs]);
       
       function handleImageUpload(e) {
         const file = e.target.files[0];
         if (file) {
           const reader = new FileReader();
           reader.onload = (evt) => {
-            setImage(evt.target.result);
-            setImagePreview(evt.target.result);
+            setNewNpcImage(evt.target.result);
           };
           reader.readAsDataURL(file);
         }
       }
       
+      function addNpc() {
+        if (!newNpcName.trim()) {
+          alert("Name is required");
+          return;
+        }
+        
+        if (editingNpc) {
+          setNpcs(npcs.map(npc => 
+            npc.id === editingNpc.id 
+              ? { 
+                  ...npc, 
+                  name: newNpcName,
+                  race: newNpcRace,
+                  occupation: newNpcOccupation,
+                  alignment: newNpcAlignment,
+                  disposition: newNpcDisposition,
+                  personality: newNpcPersonality,
+                  description: newNpcDescription,
+                  image: newNpcImage
+                } 
+              : npc
+          ));
+        } else {
+          setNpcs([
+            ...npcs, 
+            { 
+              id: Date.now(), 
+              name: newNpcName,
+              race: newNpcRace,
+              occupation: newNpcOccupation,
+              alignment: newNpcAlignment,
+              disposition: newNpcDisposition,
+              personality: newNpcPersonality,
+              description: newNpcDescription,
+              image: newNpcImage,
+              createdAt: new Date().toISOString()
+            }
+          ]);
+        }
+        
+        resetNpcForm();
+      }
+      
+      function resetNpcForm() {
+        setNewNpcName("");
+        setNewNpcRace("");
+        setNewNpcOccupation("");
+        setNewNpcAlignment("Neutral");
+        setNewNpcDisposition("Neutral");
+        setNewNpcPersonality("");
+        setNewNpcDescription("");
+        setNewNpcImage(null);
+        setEditingNpc(null);
+        setShowNpcForm(false);
+      }
+      
+      function editNpc(npc) {
+        setEditingNpc(npc);
+        setNewNpcName(npc.name);
+        setNewNpcRace(npc.race || "");
+        setNewNpcOccupation(npc.occupation || "");
+        setNewNpcAlignment(npc.alignment || "Neutral");
+        setNewNpcDisposition(npc.disposition || "Neutral");
+        setNewNpcPersonality(npc.personality || "");
+        setNewNpcDescription(npc.description || "");
+        setNewNpcImage(npc.image || null);
+        setShowNpcForm(true);
+      }
+      
+      function deleteNpc(id) {
+        if (window.confirm("Are you sure you want to delete this NPC?")) {
+          setNpcs(npcs.filter(npc => npc.id !== id));
+        }
+      }
+
+      function getDispositionClass(disposition) {
+        switch(disposition) {
+          case "Friendly": return "npc-friendly";
+          case "Hostile": return "npc-hostile";
+          default: return "npc-neutral";
+        }
+      }
+      
       return (
-        <form onSubmit={handleSubmit} className="space-y-4 bg-gray-800 p-4 rounded-lg border border-gray-700">
-          <div>
-            <label className="block text-amber-400 mb-1">Title</label>
-            <input
-              type="text"
-              className="dnd-input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter title..."
-              required
-            />
+        <CollapsibleSection title="NPCs">
+          <div className="mb-3">
+            <p className="text-amber-300 mb-2">Track important non-player characters in your campaign.</p>
+            <button 
+              className="btn-dnd rounded" 
+              onClick={() => {
+                resetNpcForm();
+                setShowNpcForm(!showNpcForm);
+              }}
+            >
+              {showNpcForm ? "Cancel" : "Add NPC"}
+            </button>
           </div>
           
-          <div>
-            <label className="block text-amber-400 mb-1">Type</label>
-            <div className="select-container">
-              <select 
-                className="dnd-select" 
-                value={type} 
-                onChange={(e) => setType(e.target.value)}
-              >
-                {typeOptions.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-              <div className="select-arrow">▼</div>
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-amber-400 mb-1">Content</label>
-            <div className="textarea-container">
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter content..."
-                className="dnd-input"
-              />
-              <div className="textarea-controls">
-                <span className="char-count">{content.length} characters</span>
+          {showNpcForm && (
+            <div className="journal-card mb-4">
+              <h3 className="text-amber-400 font-bold mb-2">{editingNpc ? "Edit" : "Add"} NPC</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Name</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newNpcName}
+                    onChange={(e) => setNewNpcName(e.target.value)}
+                    placeholder="NPC name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Race</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newNpcRace}
+                    onChange={(e) => setNewNpcRace(e.target.value)}
+                    placeholder="e.g. Human, Elf, Dwarf"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Occupation/Role</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newNpcOccupation}
+                    onChange={(e) => setNewNpcOccupation(e.target.value)}
+                    placeholder="e.g. Merchant, Guard Captain"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Alignment</label>
+                  <select 
+                    className="dnd-select" 
+                    value={newNpcAlignment}
+                    onChange={(e) => setNewNpcAlignment(e.target.value)}
+                  >
+                    <option value="Lawful Good">Lawful Good</option>
+                    <option value="Neutral Good">Neutral Good</option>
+                    <option value="Chaotic Good">Chaotic Good</option>
+                    <option value="Lawful Neutral">Lawful Neutral</option>
+                    <option value="Neutral">True Neutral</option>
+                    <option value="Chaotic Neutral">Chaotic Neutral</option>
+                    <option value="Lawful Evil">Lawful Evil</option>
+                    <option value="Neutral Evil">Neutral Evil</option>
+                    <option value="Chaotic Evil">Chaotic Evil</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Disposition to Party</label>
+                  <select 
+                    className="dnd-select" 
+                    value={newNpcDisposition}
+                    onChange={(e) => setNewNpcDisposition(e.target.value)}
+                  >
+                    <option value="Friendly">Friendly</option>
+                    <option value="Neutral">Neutral</option>
+                    <option value="Hostile">Hostile</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Image (optional)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="block w-full text-amber-200 text-sm" 
+                    onChange={handleImageUpload}
+                  />
+                  {newNpcImage && (
+                    <div className="mt-2 relative">
+                      <img src={newNpcImage} alt="Preview" className="max-h-16 rounded" />
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        onClick={() => setNewNpcImage(null)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-amber-400 mb-1">Image (optional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="block text-amber-200 text-sm mb-2"
-            />
-            {imagePreview && (
-              <div className="mt-2 relative">
-                <img src={imagePreview} alt="Preview" className="max-h-48 rounded" />
-                <button
-                  type="button"
-                  className="btn-dnd rounded absolute top-1 right-1 px-2 py-1 text-xs"
-                  onClick={() => {
-                    setImage(null);
-                    setImagePreview(null);
-                  }}
-                >
-                  Remove
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Personality Traits</label>
+                <input 
+                  type="text" 
+                  className="dnd-input" 
+                  value={newNpcPersonality}
+                  onChange={(e) => setNewNpcPersonality(e.target.value)}
+                  placeholder="Key personality traits"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Description/Notes</label>
+                <textarea 
+                  className="dnd-input" 
+                  rows="3" 
+                  value={newNpcDescription}
+                  onChange={(e) => setNewNpcDescription(e.target.value)}
+                  placeholder="Additional details about this NPC"
+                ></textarea>
+              </div>
+              <div className="flex justify-end">
+                <button className="btn-dnd rounded" onClick={addNpc}>
+                  {editingNpc ? "Update" : "Save"} NPC
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           
-          <div className="flex justify-end space-x-3 mt-4">
-            <button 
-              type="button" 
-              className="bg-gray-700 text-white rounded px-4 py-2 hover:bg-gray-600"
-              onClick={onCancel}
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              className="btn-dnd rounded px-4 py-2"
-            >
-              Save
-            </button>
-          </div>
-        </form>
+          {npcs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {npcs.map(npc => (
+                <div key={npc.id} className="journal-entry">
+                  <div className="entry-header">
+                    <div className="flex items-center">
+                      {npc.image && (
+                        <img src={npc.image} alt={npc.name} className="w-10 h-10 rounded-full mr-3 object-cover" />
+                      )}
+                      <div>
+                        <h3 className="entry-title">{npc.name}</h3>
+                        <div className="text-xs text-amber-400">{npc.race} {npc.occupation}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className={`entry-badge ${getDispositionClass(npc.disposition)}`}>
+                        {npc.disposition}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2 text-sm">
+                    <div><span className="text-amber-400">Alignment:</span> {npc.alignment}</div>
+                    <div><span className="text-amber-400">Personality:</span> {npc.personality}</div>
+                    {npc.description && (
+                      <div className="mt-1"><span className="text-amber-400">Notes:</span> {npc.description}</div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button 
+                      className="bg-amber-700 text-white rounded px-2 py-1 text-xs hover:bg-amber-800"
+                      onClick={() => editNpc(npc)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="btn-dnd rounded px-2 py-1 text-xs"
+                      onClick={() => deleteNpc(npc.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">No NPCs yet. Add one to start populating your world.</p>
+          )}
+        </CollapsibleSection>
       );
     }
 
     /**********************
-     * Campaign Items Section
+     * Locations Component
      **********************/
-    function CampaignItemsSection() {
-      const [items, setItems] = React.useState(() => {
-        const saved = localStorage.getItem("campaignItems");
+    function LocationsSection() {
+      const [locations, setLocations] = React.useState(() => {
+        const saved = localStorage.getItem("mapLocations");
         return saved ? JSON.parse(saved) : [];
       });
       
-      const [editingItem, setEditingItem] = React.useState(null);
-      const [isAdding, setIsAdding] = React.useState(false);
-      const [filter, setFilter] = React.useState("All");
-      const [searchQuery, setSearchQuery] = React.useState("");
+      const [showLocationForm, setShowLocationForm] = React.useState(false);
+      const [editingLocation, setEditingLocation] = React.useState(null);
+      
+      const [newLocationName, setNewLocationName] = React.useState("");
+      const [newLocationType, setNewLocationType] = React.useState("Town/City");
+      const [newLocationDesc, setNewLocationDesc] = React.useState("");
+      const [newLocationNotable, setNewLocationNotable] = React.useState("");
+      const [newLocationEnvironment, setNewLocationEnvironment] = React.useState("Urban");
+      const [newLocationImage, setNewLocationImage] = React.useState(null);
       
       React.useEffect(() => {
-        localStorage.setItem("campaignItems", JSON.stringify(items));
-      }, [items]);
+        localStorage.setItem("mapLocations", JSON.stringify(locations));
+      }, [locations]);
       
-      function handleAddItem() {
-        setIsAdding(true);
-        setEditingItem(null);
-      }
-      
-      function handleEditItem(item) {
-        setEditingItem(item);
-        setIsAdding(false);
-      }
-      
-      function handleSaveItem(item) {
-        if (editingItem) {
-          setItems(items.map(i => i.id === item.id ? item : i));
-        } else {
-          setItems([...items, item]);
+      function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            setNewLocationImage(evt.target.result);
+          };
+          reader.readAsDataURL(file);
         }
-        setEditingItem(null);
-        setIsAdding(false);
       }
       
-      function handleDeleteItem(id) {
-        setItems(items.filter(i => i.id !== id));
-      }
-      
-      function handleAddTag(itemId, tag) {
-        setItems(items.map(item => {
-          if (item.id === itemId) {
-            const tags = item.tags || [];
-            if (!tags.includes(tag)) {
-              return { ...item, tags: [...tags, tag] };
+      function addLocation() {
+        if (!newLocationName.trim()) {
+          alert("Name is required");
+          return;
+        }
+        
+        if (editingLocation) {
+          setLocations(locations.map(loc => 
+            loc.id === editingLocation.id 
+              ? { 
+                  ...loc, 
+                  name: newLocationName,
+                  locationType: newLocationType,
+                  environment: newLocationEnvironment,
+                  description: newLocationDesc,
+                  notableFeatures: newLocationNotable,
+                  image: newLocationImage
+                } 
+              : loc
+          ));
+        } else {
+          setLocations([
+            ...locations, 
+            { 
+              id: Date.now(), 
+              name: newLocationName,
+              locationType: newLocationType,
+              environment: newLocationEnvironment,
+              description: newLocationDesc,
+              notableFeatures: newLocationNotable,
+              image: newLocationImage,
+              createdAt: new Date().toISOString()
             }
-          }
-          return item;
-        }));
+          ]);
+        }
+        
+        resetLocationForm();
       }
       
-      function handleRemoveTag(itemId, tagIndex) {
-        setItems(items.map(item => {
-          if (item.id === itemId && item.tags) {
-            const newTags = [...item.tags];
-            newTags.splice(tagIndex, 1);
-            return { ...item, tags: newTags };
-          }
-          return item;
-        }));
+      function resetLocationForm() {
+        setNewLocationName("");
+        setNewLocationType("Town/City");
+        setNewLocationDesc("");
+        setNewLocationNotable("");
+        setNewLocationEnvironment("Urban");
+        setNewLocationImage(null);
+        setEditingLocation(null);
+        setShowLocationForm(false);
+      }
+      
+      function editLocation(location) {
+        setEditingLocation(location);
+        setNewLocationName(location.name);
+        setNewLocationType(location.locationType || "Town/City");
+        setNewLocationEnvironment(location.environment || "Urban");
+        setNewLocationDesc(location.description || "");
+        setNewLocationNotable(location.notableFeatures || "");
+        setNewLocationImage(location.image || null);
+        setShowLocationForm(true);
+      }
+      
+      function deleteLocation(id) {
+        if (window.confirm("Are you sure you want to delete this location?")) {
+          setLocations(locations.filter(loc => loc.id !== id));
+        }
       }
 
-      // Filter and search items
-      const filteredItems = items.filter(item => {
-        const matchesFilter = filter === "All" || item.type === filter;
-        const matchesSearch = searchQuery === "" || 
-          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
-        
-        return matchesFilter && matchesSearch;
-      });
+      function getEnvironmentClass(environment) {
+        switch(environment) {
+          case "Urban": return "location-urban";
+          case "Wilderness": return "location-wilderness";
+          case "Dungeon": return "location-dungeon";
+          default: return "location-urban";
+        }
+      }
       
       return (
-        <div className="content-panel">
-          <div className="panel-header">
-            <h2 className="panel-title">Campaign Journal</h2>
-            <button className="btn-dnd rounded" onClick={handleAddItem}>Add Entry</button>
-          </div>
-
-          <div className="mb-4 bg-gray-800 p-3 rounded-lg border border-amber-900">
-            <h3 className="text-amber-400 font-bold mb-1">Campaign Journal Features:</h3>
-            <ol className="list-decimal pl-5 text-sm text-amber-300">
-              <li className="mb-1">Record campaign lore, NPCs, locations and important events</li>
-              <li className="mb-1">Track shenanigans and memorable moments</li>
-              <li className="mb-1">Add images to entries for visual reference</li>
-              <li className="mb-1">Tag entries for easy searching and organization</li>
-              <li className="mb-1">Filter by entry type or search by keywords</li>
-              <li className="mb-1">Create an event timeline to track the story chronologically</li>
-              <li className="mb-1">Export journal data for use in AI prompts</li>
-            </ol>
-          </div>
-          
-          <div className="search-bar">
-            <input
-              type="text"
-              className="dnd-input search-input"
-              placeholder="Search journal..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <CollapsibleSection title="Locations">
+          <div className="mb-3">
+            <p className="text-amber-300 mb-2">Record important places in your campaign world.</p>
             <button 
-              className="btn-dnd rounded py-2 px-4"
-              onClick={() => setSearchQuery("")}
-              disabled={!searchQuery}
+              className="btn-dnd rounded" 
+              onClick={() => {
+                resetLocationForm();
+                setShowLocationForm(!showLocationForm);
+              }}
             >
-              Clear
+              {showLocationForm ? "Cancel" : "Add Location"}
             </button>
           </div>
           
-          <div className="filters">
-            {["All", "Lore", "NPC", "Location", "Event", "Item", "Shenanigan", "Note"].map(type => (
-              <button
-                key={type}
-                className={`filter-btn ${filter === type ? "active" : ""}`}
-                onClick={() => setFilter(type)}
-              >
-                {type}
-              </button>
-            ))}
+          {showLocationForm && (
+            <div className="journal-card mb-4">
+              <h3 className="text-amber-400 font-bold mb-2">{editingLocation ? "Edit" : "Add"} Location</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Name</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newLocationName}
+                    onChange={(e) => setNewLocationName(e.target.value)}
+                    placeholder="Location name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Type</label>
+                  <select 
+                    className="dnd-select" 
+                    value={newLocationType}
+                    onChange={(e) => setNewLocationType(e.target.value)}
+                  >
+                    <option value="Town/City">Town/City</option>
+                    <option value="Village">Village</option>
+                    <option value="Dungeon">Dungeon</option>
+                    <option value="Castle/Keep">Castle/Keep</option>
+                    <option value="Tavern/Inn">Tavern/Inn</option>
+                    <option value="Temple/Shrine">Temple/Shrine</option>
+                    <option value="Cave">Cave</option>
+                    <option value="Forest">Forest</option>
+                    <option value="Mountain">Mountain</option>
+                    <option value="Lake/River">Lake/River</option>
+                    <option value="Ocean/Sea">Ocean/Sea</option>
+                    <option value="Shop">Shop</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Environment</label>
+                  <select 
+                    className="dnd-select" 
+                    value={newLocationEnvironment}
+                    onChange={(e) => setNewLocationEnvironment(e.target.value)}
+                  >
+                    <option value="Urban">Urban</option>
+                    <option value="Wilderness">Wilderness</option>
+                    <option value="Dungeon">Dungeon</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Image (optional)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="block w-full text-amber-200 text-sm" 
+                    onChange={handleImageUpload}
+                  />
+                  {newLocationImage && (
+                    <div className="mt-2 relative">
+                      <img src={newLocationImage} alt="Preview" className="max-h-16 rounded" />
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        onClick={() => setNewLocationImage(null)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Description</label>
+                <textarea 
+                  className="dnd-input" 
+                  rows="2" 
+                  value={newLocationDesc}
+                  onChange={(e) => setNewLocationDesc(e.target.value)}
+                  placeholder="General description of this location"
+                ></textarea>
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Notable Features</label>
+                <textarea 
+                  className="dnd-input" 
+                  rows="2" 
+                  value={newLocationNotable}
+                  onChange={(e) => setNewLocationNotable(e.target.value)}
+                  placeholder="Notable landmarks, residents, or points of interest"
+                ></textarea>
+              </div>
+              <div className="flex justify-end">
+                <button className="btn-dnd rounded" onClick={addLocation}>
+                  {editingLocation ? "Update" : "Save"} Location
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {locations.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {locations.map(location => (
+                <div key={location.id} className="journal-entry">
+                  <div className="entry-header">
+                    <div>
+                      <h3 className="entry-title">{location.name}</h3>
+                      <div className="text-xs text-amber-400">{location.locationType}</div>
+                    </div>
+                    <div>
+                      <span className={`entry-badge ${getEnvironmentClass(location.environment)}`}>
+                        {location.environment}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {location.image && (
+                    <div className="mt-2">
+                      <img src={location.image} alt={location.name} className="w-full h-32 object-cover rounded" />
+                    </div>
+                  )}
+                  
+                  <div className="mt-2 text-sm">
+                    <div className="text-amber-200">{location.description}</div>
+                    {location.notableFeatures && (
+                      <div className="mt-1">
+                        <span className="text-amber-400">Notable:</span> {location.notableFeatures}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button 
+                      className="bg-amber-700 text-white rounded px-2 py-1 text-xs hover:bg-amber-800"
+                      onClick={() => editLocation(location)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="btn-dnd rounded px-2 py-1 text-xs"
+                      onClick={() => deleteLocation(location.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">No locations yet. Add one to start mapping your world.</p>
+          )}
+        </CollapsibleSection>
+      );
+    }
+
+    /**********************
+     * Magic Items Component
+     **********************/
+    function MagicItemsSection() {
+      const [items, setItems] = React.useState(() => {
+        const saved = localStorage.getItem("magicItems");
+        return saved ? JSON.parse(saved) : [];
+      });
+      
+      const [showItemForm, setShowItemForm] = React.useState(false);
+      const [editingItem, setEditingItem] = React.useState(null);
+      
+      const [newItemName, setNewItemName] = React.useState("");
+      const [newItemType, setNewItemType] = React.useState("Weapon");
+      const [newItemRarity, setNewItemRarity] = React.useState("Uncommon");
+      const [newItemAttunement, setNewItemAttunement] = React.useState(false);
+      const [newItemDesc, setNewItemDesc] = React.useState("");
+      const [newItemProperties, setNewItemProperties] = React.useState("");
+      const [newItemImage, setNewItemImage] = React.useState(null);
+      
+      React.useEffect(() => {
+        localStorage.setItem("magicItems", JSON.stringify(items));
+      }, [items]);
+      
+      function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            setNewItemImage(evt.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+      
+      function addItem() {
+        if (!newItemName.trim()) {
+          alert("Name is required");
+          return;
+        }
+        
+        if (editingItem) {
+          setItems(items.map(item => 
+            item.id === editingItem.id 
+              ? { 
+                  ...item, 
+                  name: newItemName,
+                  itemType: newItemType,
+                  rarity: newItemRarity,
+                  requiresAttunement: newItemAttunement,
+                  description: newItemDesc,
+                  properties: newItemProperties,
+                  image: newItemImage
+                } 
+              : item
+          ));
+        } else {
+          setItems([
+            ...items, 
+            { 
+              id: Date.now(), 
+              name: newItemName,
+              itemType: newItemType,
+              rarity: newItemRarity,
+              requiresAttunement: newItemAttunement,
+              description: newItemDesc,
+              properties: newItemProperties,
+              image: newItemImage,
+              createdAt: new Date().toISOString()
+            }
+          ]);
+        }
+        
+        resetItemForm();
+      }
+      
+      function resetItemForm() {
+        setNewItemName("");
+        setNewItemType("Weapon");
+        setNewItemRarity("Uncommon");
+        setNewItemAttunement(false);
+        setNewItemDesc("");
+        setNewItemProperties("");
+        setNewItemImage(null);
+        setEditingItem(null);
+        setShowItemForm(false);
+      }
+      
+      function editItem(item) {
+        setEditingItem(item);
+        setNewItemName(item.name);
+        setNewItemType(item.itemType || "Weapon");
+        setNewItemRarity(item.rarity || "Uncommon");
+        setNewItemAttunement(!!item.requiresAttunement);
+        setNewItemDesc(item.description || "");
+        setNewItemProperties(item.properties || "");
+        setNewItemImage(item.image || null);
+        setShowItemForm(true);
+      }
+      
+      function deleteItem(id) {
+        if (window.confirm("Are you sure you want to delete this item?")) {
+          setItems(items.filter(item => item.id !== id));
+        }
+      }
+
+      function getRarityClass(rarity) {
+        switch(rarity) {
+          case "Common": return "rarity-common";
+          case "Uncommon": return "rarity-uncommon";
+          case "Rare": return "rarity-rare";
+          case "Very Rare": return "rarity-very-rare";
+          case "Legendary": return "rarity-legendary";
+          case "Artifact": return "rarity-artifact";
+          default: return "rarity-uncommon";
+        }
+      }
+      
+      return (
+        <CollapsibleSection title="Magic Items">
+          <div className="mb-3">
+            <p className="text-amber-300 mb-2">Catalog magical artifacts, weapons, and items in your campaign.</p>
+            <button 
+              className="btn-dnd rounded" 
+              onClick={() => {
+                resetItemForm();
+                setShowItemForm(!showItemForm);
+              }}
+            >
+              {showItemForm ? "Cancel" : "Add Magic Item"}
+            </button>
           </div>
           
-          {isAdding || editingItem ? (
-            <CampaignItemForm 
-              item={editingItem}
-              onSave={handleSaveItem}
-              onCancel={() => {
-                setEditingItem(null);
-                setIsAdding(false);
-              }}
-            />
+          {showItemForm && (
+            <div className="journal-card mb-4">
+              <h3 className="text-amber-400 font-bold mb-2">{editingItem ? "Edit" : "Add"} Magic Item</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Name</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    placeholder="Item name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Type</label>
+                  <select 
+                    className="dnd-select" 
+                    value={newItemType}
+                    onChange={(e) => setNewItemType(e.target.value)}
+                  >
+                    <option value="Weapon">Weapon</option>
+                    <option value="Armor">Armor</option>
+                    <option value="Wondrous Item">Wondrous Item</option>
+                    <option value="Potion">Potion</option>
+                    <option value="Ring">Ring</option>
+                    <option value="Rod">Rod</option>
+                    <option value="Scroll">Scroll</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Wand">Wand</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Rarity</label>
+                  <select 
+                    className="dnd-select" 
+                    value={newItemRarity}
+                    onChange={(e) => setNewItemRarity(e.target.value)}
+                  >
+                    <option value="Common">Common</option>
+                    <option value="Uncommon">Uncommon</option>
+                    <option value="Rare">Rare</option>
+                    <option value="Very Rare">Very Rare</option>
+                    <option value="Legendary">Legendary</option>
+                    <option value="Artifact">Artifact</option>
+                  </select>
+                </div>
+                <div className="flex items-center ml-2 mt-6">
+                  <input 
+                    type="checkbox" 
+                    id="requires-attunement"
+                    checked={newItemAttunement}
+                    onChange={() => setNewItemAttunement(!newItemAttunement)}
+                    className="mr-2"
+                  />
+                  <label htmlFor="requires-attunement" className="text-sm text-amber-300">
+                    Requires Attunement
+                  </label>
+                </div>
+              </div>
+              
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Properties</label>
+                <input 
+                  type="text" 
+                  className="dnd-input" 
+                  value={newItemProperties}
+                  onChange={(e) => setNewItemProperties(e.target.value)}
+                  placeholder="Special properties, bonuses, etc."
+                />
+              </div>
+              
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Description</label>
+                <textarea 
+                  className="dnd-input" 
+                  rows="3" 
+                  value={newItemDesc}
+                  onChange={(e) => setNewItemDesc(e.target.value)}
+                  placeholder="Detailed description of the item"
+                ></textarea>
+              </div>
+              
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Image (optional)</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="block w-full text-amber-200 text-sm" 
+                  onChange={handleImageUpload}
+                />
+                {newItemImage && (
+                  <div className="mt-2 relative">
+                    <img src={newItemImage} alt="Preview" className="max-h-16 rounded" />
+                    <button
+                      type="button"
+                      className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      onClick={() => setNewItemImage(null)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end">
+                <button className="btn-dnd rounded" onClick={addItem}>
+                  {editingItem ? "Update" : "Save"} Item
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {items.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {items.map(item => (
+                <div key={item.id} className="journal-entry">
+                  <div className="entry-header">
+                    <div>
+                      <h3 className="entry-title">{item.name}</h3>
+                      <div className="text-xs text-amber-400">
+                        {item.itemType} {item.requiresAttunement && "(Attunement)"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className={`entry-badge ${getRarityClass(item.rarity)}`}>
+                        {item.rarity}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {item.image && (
+                    <div className="mt-2">
+                      <img src={item.image} alt={item.name} className="w-24 h-24 object-contain rounded" />
+                    </div>
+                  )}
+                  
+                  <div className="mt-2 text-sm">
+                    {item.properties && (
+                      <div><span className="text-amber-400">Properties:</span> {item.properties}</div>
+                    )}
+                    <div className="mt-1 text-amber-200">{item.description}</div>
+                  </div>
+                  
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button 
+                      className="bg-amber-700 text-white rounded px-2 py-1 text-xs hover:bg-amber-800"
+                      onClick={() => editItem(item)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="btn-dnd rounded px-2 py-1 text-xs"
+                      onClick={() => deleteItem(item.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="space-y-2">
-              {filteredItems.length > 0 ? (
-                filteredItems.map(item => (
-                  <CampaignItem
-                    key={item.id}
-                    item={item}
-                    onEdit={handleEditItem}
-                    onDelete
+            <p className="text-gray-500 italic">No magic items yet. Add one to start building your collection.</p>
+          )}
+        </CollapsibleSection>
+      );
+    }
+
+    /**********************
+     * Timeline Component
+     **********************/
+    function TimelineSection() {
+      const [events, setEvents] = React.useState(() => {
+        const saved = localStorage.getItem("eventTimeline");
+        return saved ? JSON.parse(saved) : [];
+      });
+      
+      const [showEventForm, setShowEventForm] = React.useState(false);
+      const [editingEvent, setEditingEvent] = React.useState(null);
+      
+      const [newEventTitle, setNewEventTitle] = React.useState("");
+      const [newEventDate, setNewEventDate] = React.useState("");
+      const [newEventDesc, setNewEventDesc] = React.useState("");
+      const [newEventSignificance, setNewEventSignificance] = React.useState("Medium");
+      
+      React.useEffect(() => {
+        localStorage.setItem("eventTimeline", JSON.stringify(events));
+      }, [events]);
+      
+      function addEvent() {
+        if (!newEventTitle.trim() || !newEventDate.trim()) {
+          alert("Title and date are required");
+          return;
+        }
+        
+        if (editingEvent) {
+          setEvents(events.map(event => 
+            event.id === editingEvent.id 
+              ? { 
+                  ...event, 
+                  title: newEventTitle,
+                  date: newEventDate,
+                  description: newEventDesc,
+                  significance: newEventSignificance
+                } 
+              : event
+          ));
+        } else {
+          setEvents([
+            ...events, 
+            { 
+              id: Date.now(), 
+              title: newEventTitle,
+              date: newEventDate,
+              description: newEventDesc,
+              significance: newEventSignificance,
+              createdAt: new Date().toISOString()
+            }
+          ]);
+        }
+        
+        resetEventForm();
+      }
+      
+      function resetEventForm() {
+        setNewEventTitle("");
+        setNewEventDate("");
+        setNewEventDesc("");
+        setNewEventSignificance("Medium");
+        setEditingEvent(null);
+        setShowEventForm(false);
+      }
+      
+      function editEvent(event) {
+        setEditingEvent(event);
+        setNewEventTitle(event.title);
+        setNewEventDate(event.date);
+        setNewEventDesc(event.description || "");
+        setNewEventSignificance(event.significance || "Medium");
+        setShowEventForm(true);
+      }
+      
+      function deleteEvent(id) {
+        if (window.confirm("Are you sure you want to delete this event?")) {
+          setEvents(events.filter(event => event.id !== id));
+        }
+      }
+      
+      // Sort events by date (simple alphanumeric sort for this example)
+      const sortedEvents = [...events].sort((a, b) => a.date.localeCompare(b.date));
+      
+      return (
+        <CollapsibleSection title="Timeline">
+          <div className="mb-3">
+            <p className="text-amber-300 mb-2">Track important events and dates in your campaign's history.</p>
+            <button 
+              className="btn-dnd rounded" 
+              onClick={() => {
+                resetEventForm();
+                setShowEventForm(!showEventForm);
+              }}
+            >
+              {showEventForm ? "Cancel" : "Add Event"}
+            </button>
+          </div>
+          
+          {showEventForm && (
+            <div className="journal-card mb-4">
+              <h3 className="text-amber-400 font-bold mb-2">{editingEvent ? "Edit" : "Add"} Timeline Event</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Title</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newEventTitle}
+                    onChange={(e) => setNewEventTitle(e.target.value)}
+                    placeholder="Event title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Date/Time</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newEventDate}
+                    onChange={(e) => setNewEventDate(e.target.value)}
+                    placeholder="e.g. Year 1242, Day 3 of Greengrass"
+                  />
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Significance</label>
+                <select 
+                  className="dnd-select" 
+                  value={newEventSignificance}
+                  onChange={(e) => setNewEventSignificance(e.target.value)}
+                >
+                  <option value="Low">Minor Event</option>
+                  <option value="Medium">Significant Event</option>
+                  <option value="High">Major Event</option>
+                </select>
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Description</label>
+                <textarea 
+                  className="dnd-input" 
+                  rows="3" 
+                  value={newEventDesc}
+                  onChange={(e) => setNewEventDesc(e.target.value)}
+                  placeholder="What happened during this event?"
+                ></textarea>
+              </div>
+              <div className="flex justify-end">
+                <button className="btn-dnd rounded" onClick={addEvent}>
+                  {editingEvent ? "Update" : "Save"} Event
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {sortedEvents.length > 0 ? (
+            <div className="timeline-container">
+              {sortedEvents.map(event => (
+                <div key={event.id} className="journal-entry relative pl-5 mb-4">
+                  <div className="timeline-dot"></div>
+                  <div className="entry-header">
+                    <div>
+                      <h3 className="entry-title">{event.title}</h3>
+                      <div className="text-amber-400 text-sm font-bold">{event.date}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        className="bg-amber-700 text-white rounded px-2 py-1 text-xs hover:bg-amber-800"
+                        onClick={() => editEvent(event)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="btn-dnd rounded px-2 py-1 text-xs"
+                        onClick={() => deleteEvent(event.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2 text-amber-200">
+                    {event.description}
+                  </div>
+                  
+                  <div className="mt-2">
+                    <span className={`text-xs ${
+                      event.significance === 'High' ? 'text-red-400' : 
+                      event.significance === 'Medium' ? 'text-amber-400' : 'text-green-400'
+                    }`}>
+                      {event.significance === 'High' ? 'Major Event' : 
+                       event.significance === 'Medium' ? 'Significant Event' : 'Minor Event'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">No timeline events yet. Add one to start tracking your campaign history.</p>
+          )}
+        </CollapsibleSection>
+      );
+    }
+
+    /**********************
+     * Shenanigans Component
+     **********************/
+    function ShenanigansSection() {
+      const [shenanigans, setShenanigans] = React.useState(() => {
+        const saved = localStorage.getItem("shenanigans");
+        return saved ? JSON.parse(saved) : [];
+      });
+      
+      const [showShenanigansForm, setShowShenanigansForm] = React.useState(false);
+      const [editingShenanigan, setEditingShenanigan] = React.useState(null);
+      
+      const [newShenanigansTitle, setNewShenanigansTitle] = React.useState("");
+      const [newShenanigansDesc, setNewShenanigansDesc] = React.useState("");
+      const [newShenanigansSession, setNewShenanigansSession] = React.useState("");
+      const [newShenanigansRating, setNewShenanigansRating] = React.useState(5);
+      const [newShenanigansPlayers, setNewShenanigansPlayers] = React.useState("");
+      
+      React.useEffect(() => {
+        localStorage.setItem("shenanigans", JSON.stringify(shenanigans));
+      }, [shenanigans]);
+      
+      function addShenanigan() {
+        if (!newShenanigansTitle.trim()) {
+          alert("Title is required");
+          return;
+        }
+        
+        if (editingShenanigan) {
+          setShenanigans(shenanigans.map(item => 
+            item.id === editingShenanigan.id 
+              ? { 
+                  ...item, 
+                  title: newShenanigansTitle,
+                  description: newShenanigansDesc,
+                  session: newShenanigansSession,
+                  rating: newShenanigansRating,
+                  players: newShenanigansPlayers
+                } 
+              : item
+          ));
+        } else {
+          setShenanigans([
+            ...shenanigans, 
+            { 
+              id: Date.now(), 
+              title: newShenanigansTitle,
+              description: newShenanigansDesc,
+              session: newShenanigansSession,
+              rating: newShenanigansRating,
+              players: newShenanigansPlayers,
+              createdAt: new Date().toISOString()
+            }
+          ]);
+        }
+        
+        resetShenanigansForm();
+      }
+      
+      function resetShenanigansForm() {
+        setNewShenanigansTitle("");
+        setNewShenanigansDesc("");
+        setNewShenanigansSession("");
+        setNewShenanigansRating(5);
+        setNewShenanigansPlayers("");
+        setEditingShenanigan(null);
+        setShowShenanigansForm(false);
+      }
+      
+      function editShenanigan(item) {
+        setEditingShenanigan(item);
+        setNewShenanigansTitle(item.title);
+        setNewShenanigansDesc(item.description || "");
+        setNewShenanigansSession(item.session || "");
+        setNewShenanigansRating(item.rating || 5);
+        setNewShenanigansPlayers(item.players || "");
+        setShowShenanigansForm(true);
+      }
+      
+      function deleteShenanigan(id) {
+        if (window.confirm("Are you sure you want to delete this memorable moment?")) {
+          setShenanigans(shenanigans.filter(item => item.id !== id));
+        }
+      }
+      
+      // Sort shenanigans by rating (descending)
+      const sortedShenanigans = [...shenanigans].sort((a, b) => (b.rating || 5) - (a.rating || 5));
+      
+      return (
+        <CollapsibleSection title="Shenanigans & Memorable Moments">
+          <div className="mb-3">
+            <p className="text-amber-300 mb-2">Record funny moments, player antics, and memorable campaign events.</p>
+            <button 
+              className="btn-dnd rounded" 
+              onClick={() => {
+                resetShenanigansForm();
+                setShowShenanigansForm(!showShenanigansForm);
+              }}
+            >
+              {showShenanigansForm ? "Cancel" : "Add Memorable Moment"}
+            </button>
+          </div>
+          
+          {showShenanigansForm && (
+            <div className="journal-card mb-4">
+              <h3 className="text-amber-400 font-bold mb-2">{editingShenanigan ? "Edit" : "Add"} Memorable Moment</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Title</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newShenanigansTitle}
+                    onChange={(e) => setNewShenanigansTitle(e.target.value)}
+                    placeholder="Memorable moment title"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-amber-300 mb-1">Session Number (optional)</label>
+                  <input 
+                    type="text" 
+                    className="dnd-input" 
+                    value={newShenanigansSession}
+                    onChange={(e) => setNewShenanigansSession(e.target.value)}
+                    placeholder="e.g. Session 5"
+                  />
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Epicness Rating (1-10)</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="10" 
+                    value={newShenanigansRating}
+                    onChange={(e) => setNewShenanigansRating(parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="text-amber-400 font-bold">{newShenanigansRating}</span>
+                </div>
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Players Involved (optional)</label>
+                <input 
+                  type="text" 
+                  className="dnd-input" 
+                  value={newShenanigansPlayers}
+                  onChange={(e) => setNewShenanigansPlayers(e.target.value)}
+                  placeholder="e.g. John, Sarah, Mike"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-sm text-amber-300 mb-1">Description</label>
+                <textarea 
+                  className="dnd-input" 
+                  rows="3" 
+                  value={newShenanigansDesc}
+                  onChange={(e) => setNewShenanigansDesc(e.target.value)}
+                  placeholder="What happened? Why was it memorable?"
+                ></textarea>
+              </div>
+              <div className="flex justify-end">
+                <button className="btn-dnd rounded" onClick={addShenanigan}>
+                  {editingShenanigan ? "Update" : "Save"} Moment
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {sortedShenanigans.length > 0 ? (
+            <div className="grid grid-cols-1 gap-3">
+              {sortedShenanigans.map(item => (
+                <div key={item.id} className="journal-entry">
+                  <div className="entry-header">
+                    <div>
+                      <h3 className="entry-title">{item.title}</h3>
+                      <div className="text-xs text-amber-400">
+                        {item.session ? `Session ${item.session}` : ""}
+                        {item.session && item.players ? " • " : ""}
+                        {item.players ? `Players: ${item.players}` : ""}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-amber-400 text-xs">{item.rating || 5}/10</span>
+                        <div className="flex">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span 
+                              key={i} 
+                              className={`text-sm ${i < Math.ceil((item.rating || 5) / 2) ? 'text-yellow-500' : 'text-gray-600'}`}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2 text-amber-200 whitespace-pre-line">
+                    {item.description}
+                  </div>
+                  
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button 
+                      className="bg-amber-700 text-white rounded px-2 py-1 text-xs hover:bg-amber-800"
+                      onClick={() => editShenanigan(item)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="btn-dnd rounded px-2 py-1 text-xs"
+                      onClick={() => deleteShenanigan(item.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">No memorable moments recorded yet. Add one to start collecting campaign stories!</p>
+          )}
+        </CollapsibleSection>
+      );
+    }
+
+    /**********************
+     * Main App Component
+     **********************/
+    function CampaignJournal() {
+      return (
+        <div className="app-container">
+          <h1 className="app-title mb-4">D&D Campaign Journal</h1>
+          
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+            <DarkModeToggle />
+            <div className="flex gap-2">
+              <button className="px-3 py-1 btn-dnd rounded hover:bg-amber-800" onClick={backupLocalStorage}>
+                Backup Data
+              </button>
+              <label className="px-3 py-1 btn-dnd rounded hover:bg-amber-800 cursor-pointer text-sm">
+                Restore Data
+                <input type="file" accept=".json" onChange={(e) => restoreLocalStorage(e.target.files)} className="hidden" />
+              </label>
+              <button className="px-3 py-1 btn-dnd rounded hover:bg-amber-800" onClick={copyForPrompt}>
+                Copy for Prompt
+              </button>
+            </div>
+          </div>
+          
+          <div className="content-panel">
+            <div className="panel-header">
+              <h2 className="panel-title">Campaign Journal</h2>
+            </div>
+
+            <div className="mb-4 bg-gray-800 p-3 rounded-lg border border-amber-900">
+              <h3 className="text-amber-400 font-bold mb-1">Campaign Journal Features:</h3>
+              <ol className="feature-list text-sm text-amber-300">
+                <li>Record campaign lore, NPCs, locations and important events in a structured format</li>
+                <li>Track timeline of key events in chronological order</li>
+                <li>Document magical items with rarities and properties</li>
+                <li>Catalog NPCs with personality traits, alignment, and disposition</li>
+                <li>Record memorable shenanigans and funny player moments</li>
+                <li>Add images to entries for visual reference</li>
+                <li>One-click export of journal data for use in AI prompts</li>
+                <li>Backup and restore your campaign data</li>
+              </ol>
+            </div>
+            
+            <CampaignLoreSection />
+            <NPCSection />
+            <LocationsSection />
+            <TimelineSection />
+            <MagicItemsSection />
+            <ShenanigansSection />
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<CampaignJournal />, document.getElementById("root"));
+  </script>
+</body>
+</html>
