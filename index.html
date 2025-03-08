@@ -2,8 +2,9 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <title>Campaign Journal with Item Lists</title>
+  <title>D&D Campaign Journal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- React & ReactDOM -->
@@ -17,15 +18,10 @@
   <style>
     /* Base Styles */
     body {
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Cinzel', serif;
       background: #f4e4bc url("https://www.transparenttextures.com/patterns/aged-paper.png") repeat;
       background-blend-mode: overlay;
       color: #4a2c0f;
-      direction: ltr;
-      font-size: 1.1rem;
-    }
-    h1, h2, h3, h4, button, .section-header {
-      font-family: 'Cinzel', serif;
     }
     .dark {
       background-color: #1a1a1a;
@@ -59,39 +55,40 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    /* Section Header */
-    .section-header {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: 0.75rem;
-      color: #4a2c0f;
-      text-align: center;
-      position: relative;
-    }
-    .section-header::after {
-      content: "";
-      display: block;
-      height: 2px;
-      background-image: linear-gradient(to right, transparent, #8b5a2b, transparent);
-      margin-top: 0.25rem;
-    }
-    /* Note Container */
-    .note-container {
-      background-color: #f9efd4;
-      padding: 1.5rem;
+    /* Content Panel Styles */
+    .content-panel {
+      background-color: #1a222e;
       border-radius: 0.5rem;
-      box-shadow: 0 0 15px rgba(0,0,0,0.15);
-      margin-bottom: 2rem;
+      border: 1px solid #4a3f35;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      color: #f4e4bc;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 2px solid #8B0000;
+    }
+    .panel-title {
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      font-size: 1.25rem;
+      color: #f4e4bc;
     }
     /* Input Field Styles */
     .dnd-input {
       width: 100%;
-      border: 1px solid #8b5a2b;
+      border: 1px solid #4a3f35;
       border-radius: 0.375rem;
       background-color: #f9efd4;
-      color: #4a2c0f;
+      color: #1a222e;
       padding: 0.75rem;
       transition: all 0.3s ease;
+      font-family: 'Cormorant Garamond', serif;
     }
     .dnd-input:focus {
       outline: none;
@@ -102,144 +99,242 @@
       color: #8b5a2b;
       opacity: 0.6;
     }
-    /* Textarea Styles */
-    .dnd-textarea {
+    /* Item Card Styles */
+    .item-card {
+      background-color: #1e2a38;
+      color: #f4e4bc;
+      border: 1px solid #4a3f35;
+      border-radius: 0.375rem;
+      margin-bottom: 0.75rem;
+      padding: 0.75rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      font-family: 'Cormorant Garamond', serif;
+      transition: all 0.3s ease;
+    }
+    .item-card:hover {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-content {
+      margin-top: 0.75rem;
+      font-size: 1.1rem;
+      white-space: pre-line;
+    }
+    .app-title {
+      font-family: 'Cinzel', serif;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #8B0000;
+      text-align: center;
+      margin: 1.5rem 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .tag {
+      background-color: #442200;
+      color: #f4e4bc;
+      border-radius: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      margin-right: 0.25rem;
+      margin-bottom: 0.25rem;
+      display: inline-block;
+      font-size: 0.85rem;
+    }
+    .item-type {
+      color: #f4e4bc;
+      padding: 0.25rem 0.5rem;
+      margin-right: 0.25rem;
+      border-radius: 0.25rem;
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .type-lore {
+      background-color: #2c3e50;
+    }
+    .type-npc {
+      background-color: #8e44ad;
+    }
+    .type-location {
+      background-color: #27ae60;
+    }
+    .type-event {
+      background-color: #d35400;
+    }
+    .type-item {
+      background-color: #16a085;
+    }
+    .type-shenanigan {
+      background-color: #c0392b;
+    }
+    .type-note {
+      background-color: #7f8c8d;
+    }
+    .item-title {
+      font-family: 'Cinzel', serif;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-left: 0.5rem;
+    }
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .textarea-container {
+      position: relative;
+    }
+    .textarea-container textarea {
       width: 100%;
-      border: 1px solid #8b5a2b;
+      height: 150px;
+      border: 1px solid #4a3f35;
       border-radius: 0.375rem;
       background-color: #f9efd4;
-      color: #4a2c0f;
+      color: #1a222e;
       padding: 0.75rem;
-      transition: all 0.3s ease;
-      min-height: 100px;
+      resize: vertical;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
     }
-    .dnd-textarea:focus {
+    .textarea-container textarea:focus {
       outline: none;
       border-color: #6d4c3d;
       box-shadow: 0 0 5px rgba(139,90,43,0.5);
     }
-    .dnd-textarea::placeholder {
+    .textarea-container textarea::placeholder {
       color: #8b5a2b;
       opacity: 0.6;
     }
-    /* Scroll Container Styles */
-    .scroll-container {
-      position: relative;
-      margin: 1.5rem 0;
-      background-color: #f9efd4;
-      border-radius: 0px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.15);
-      overflow: visible;
-    }
-    .scroll-container::before,
-    .scroll-container::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 35px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 60' preserveAspectRatio='none'%3E%3Cpath fill='%23e0d2b0' d='M0,0 C250,60 750,60 1000,0 L1000,60 L0,60 Z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-size: 100% 100%;
-      z-index: 5;
-    }
-    .scroll-container::before {
-      top: -20px;
-      transform: rotate(180deg);
-    }
-    .scroll-container::after {
-      bottom: -20px;
-    }
-    .scroll-content {
-      padding: 2rem 1.5rem;
-      position: relative;
-      z-index: 1;
-      background-color: #f9efd4;
-      background-image: repeating-linear-gradient(#f9efd4 0px, #f9efd4 24px, #e0d2b0 25px);
-      margin: 0.5rem;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-      border-left: 1px solid #e0d2b0;
-      border-right: 1px solid #e0d2b0;
-    }
-    /* Quest Item Styles */
-    .quest-item {
-      background-color: #f4e4bc;
-      border: 1px solid #8b5a2b;
-      border-radius: 0.375rem;
-      transition: all 0.3s ease;
-    }
-    .quest-item:hover {
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .dark .quest-item {
-      background-color: #2d2d2d;
-      border-color: #6d4c3d;
-    }
-    .difficulty-easy {
-      border-left: 4px solid #4caf50;
-    }
-    .difficulty-medium {
-      border-left: 4px solid #ff9800;
-    }
-    .difficulty-hard {
-      border-left: 4px solid #f44336;
-    }
-    .difficulty-legendary {
-      border-left: 4px solid #9c27b0;
-    }
-    .status-notstarted {
-      border-right: 4px solid #9e9e9e;
-    }
-    .status-inprogress {
-      border-right: 4px solid #2196f3;
-    }
-    .status-completed {
-      border-right: 4px solid #4caf50;
-    }
-    .status-failed {
-      border-right: 4px solid #f44336;
-    }
-    .quest-header {
+    .textarea-controls {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      margin-top: 0.5rem;
+    }
+    .char-count {
+      font-size: 0.75rem;
+      color: #6d4c3d;
+    }
+    .image-container {
+      max-width: 300px;
+      max-height: 300px;
+      overflow: hidden;
+      border-radius: 0.25rem;
+      margin-top: 0.75rem;
+    }
+    .image-container img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+    .collapsible-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease-in-out;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .filter-btn {
+      background-color: #1e2a38;
+      color: #f4e4bc;
+      border: 1px solid #4a3f35;
+      border-radius: 0.25rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-btn.active {
+      background-color: #8B0000;
+      border-color: #f4e4bc;
+    }
+    .filter-btn:hover {
+      background-color: #2c3e50;
+    }
+    .select-container {
+      position: relative;
+      width: 100%;
+    }
+    .dnd-select {
+      appearance: none;
+      width: 100%;
+      border: 1px solid #4a3f35;
+      border-radius: 0.375rem;
+      background-color: #f9efd4;
+      color: #1a222e;
       padding: 0.75rem;
-      border-bottom: 1px solid #e0d2b0;
+      font-family: 'Cinzel', serif;
       cursor: pointer;
     }
-    .quest-content {
-      padding: 0.75rem;
+    .dnd-select:focus {
+      outline: none;
+      border-color: #6d4c3d;
+      box-shadow: 0 0 5px rgba(139,90,43,0.5);
     }
-    .quest-label {
-      display: inline-block;
+    .select-arrow {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .search-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .search-input {
+      flex-grow: 1;
+    }
+    .timeline {
+      position: relative;
+      margin: 2rem 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 1rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: #8B0000;
+    }
+    .timeline-item {
+      position: relative;
+      margin-left: 2.5rem;
+      padding-bottom: 1.5rem;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -1.5rem;
+      top: 0.5rem;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      background-color: #8B0000;
+    }
+    .timeline-date {
       font-family: 'Cinzel', serif;
-      font-size: 0.8rem;
-      color: #6d4c3d;
-      margin-bottom: 0.25rem;
-    }
-    .quest-value {
+      font-weight: bold;
       margin-bottom: 0.5rem;
+      color: #f4e4bc;
     }
-    .field-label {
-      display: block;
-      font-family: 'Cinzel', serif;
-      font-weight: bold;
-      margin-bottom: 0.25rem;
-      color: #6d4c3d;
-    }
-    .required::after {
-      content: "*";
-      color: #8B0000;
-      margin-left: 0.25rem;
-    }
-    .app-title {
-      font-family: 'Cinzel', serif;
-      font-size: 2rem;
-      font-weight: bold;
-      color: #8B0000;
-      text-align: center;
-      margin: 1rem 0;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    .timeline-content {
+      background-color: #1e2a38;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
@@ -251,17 +346,19 @@
      **********************/
     function backupLocalStorage() {
       const data = {
-        loreItems: localStorage.getItem("loreItems"),
-        campaignNotesItems: localStorage.getItem("campaignNotesItems"),
-        shenanigansItems: localStorage.getItem("shenanigansItems"),
-        quests: localStorage.getItem("quests"),
+        campaignItems: localStorage.getItem("campaignItems"),
+        eventTimeline: localStorage.getItem("eventTimeline"),
+        mapLocations: localStorage.getItem("mapLocations"),
+        npcs: localStorage.getItem("npcs"),
+        magicItems: localStorage.getItem("magicItems"),
+        shenanigans: localStorage.getItem("shenanigans"),
         darkMode: localStorage.getItem("darkMode")
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "campaign_backup.json";
+      a.download = "campaign_journal_backup.json";
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -289,14 +386,55 @@
 
     function copyForPrompt() {
       const data = {
-        lore: JSON.parse(localStorage.getItem("loreItems") || "[]"),
-        campaignNotes: JSON.parse(localStorage.getItem("campaignNotesItems") || "[]"),
-        shenanigans: JSON.parse(localStorage.getItem("shenanigansItems") || "[]"),
-        quests: JSON.parse(localStorage.getItem("quests") || "[]")
+        campaignItems: JSON.parse(localStorage.getItem("campaignItems") || "[]"),
+        eventTimeline: JSON.parse(localStorage.getItem("eventTimeline") || "[]"),
+        mapLocations: JSON.parse(localStorage.getItem("mapLocations") || "[]"),
+        npcs: JSON.parse(localStorage.getItem("npcs") || "[]"),
+        magicItems: JSON.parse(localStorage.getItem("magicItems") || "[]"),
+        shenanigans: JSON.parse(localStorage.getItem("shenanigans") || "[]")
       };
-      const jsonString = JSON.stringify(data, null, 2);
-      navigator.clipboard.writeText(jsonString)
-        .then(() => alert("Data copied to clipboard!"))
+      
+      // Generate a formatted string with headers for each category
+      let promptText = "# D&D Campaign Journal\n\n";
+      
+      // Campaign Lore
+      promptText += "## Campaign Lore\n";
+      data.campaignItems.forEach(item => {
+        promptText += `- ${item.title} (${item.type}): ${item.content}\n`;
+      });
+      
+      // Event Timeline
+      promptText += "\n## Event Timeline\n";
+      data.eventTimeline.forEach(event => {
+        promptText += `- ${event.date}: ${event.title} - ${event.description}\n`;
+      });
+      
+      // Locations
+      promptText += "\n## Locations\n";
+      data.mapLocations.forEach(location => {
+        promptText += `- ${location.name} (${location.type}): ${location.description}\n`;
+      });
+      
+      // NPCs
+      promptText += "\n## NPCs\n";
+      data.npcs.forEach(npc => {
+        promptText += `- ${npc.name} (${npc.race}/${npc.occupation}): ${npc.personality}\n`;
+      });
+      
+      // Magic Items
+      promptText += "\n## Magic Items\n";
+      data.magicItems.forEach(item => {
+        promptText += `- ${item.name} (${item.rarity}): ${item.description}\n`;
+      });
+      
+      // Shenanigans
+      promptText += "\n## Shenanigans\n";
+      data.shenanigans.forEach(shenanigan => {
+        promptText += `- ${shenanigan.title}: ${shenanigan.description}\n`;
+      });
+      
+      navigator.clipboard.writeText(promptText)
+        .then(() => alert("Campaign Journal copied to clipboard for prompt use!"))
         .catch((err) => {
           console.error("Failed to copy: ", err);
           alert("Failed to copy data to clipboard.");
@@ -325,413 +463,378 @@
     }
 
     /**********************
-     * Reusable Item Tracker Component
+     * Campaign Item Component
      **********************/
-    function ItemTracker({ title, storageKey, placeholder }) {
-      const [items, setItems] = React.useState(() => {
-        const saved = localStorage.getItem(storageKey);
-        return saved ? JSON.parse(saved) : [];
-      });
-      const [editingIndex, setEditingIndex] = React.useState(null);
-      const [inputValue, setInputValue] = React.useState("");
+    function CampaignItem({ item, onEdit, onDelete, onTagAdd, onTagRemove }) {
+      const [isExpanded, setIsExpanded] = React.useState(false);
+      const [newTag, setNewTag] = React.useState("");
 
-      React.useEffect(() => {
-        localStorage.setItem(storageKey, JSON.stringify(items));
-      }, [items, storageKey]);
+      const typeClasses = {
+        "Lore": "type-lore",
+        "NPC": "type-npc",
+        "Location": "type-location",
+        "Event": "type-event",
+        "Item": "type-item",
+        "Shenanigan": "type-shenanigan",
+        "Note": "type-note"
+      };
 
-      function addItem() {
-        if (inputValue.trim() === "") return;
-        setItems([...items, inputValue.trim()]);
-        setInputValue("");
-      }
-
-      function updateItem(index, newValue) {
-        if (newValue.trim() === "") return;
-        const newItems = [...items];
-        newItems[index] = newValue.trim();
-        setItems(newItems);
-      }
-
-      function deleteItem(index) {
-        if (window.confirm("Are you sure you want to delete this item?")) {
-          const newItems = items.filter((_, i) => i !== index);
-          setItems(newItems);
+      function handleAddTag(e) {
+        e.preventDefault();
+        if (newTag.trim()) {
+          onTagAdd(item.id, newTag.trim());
+          setNewTag("");
         }
       }
 
       return (
-        <div className="note-container">
-          <h2 className="section-header">{title}</h2>
-          <div className="mb-4">
-            {editingIndex === null && (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={placeholder}
-                  className="dnd-input"
-                />
-                <button className="btn-dnd rounded" onClick={addItem}>Add</button>
+        <div className="item-card">
+          <div className="card-top">
+            <div className="flex items-center">
+              <span className={`item-type ${typeClasses[item.type] || "type-note"}`}>{item.type}</span>
+              <h3 className="item-title" onClick={() => setIsExpanded(!isExpanded)}>
+                {item.title}
+              </h3>
+            </div>
+            <div className="card-actions">
+              <button 
+                className="bg-amber-700 text-white rounded px-2 py-1 text-sm hover:bg-amber-800"
+                onClick={() => onEdit(item)}
+              >
+                Edit
+              </button>
+              <button 
+                className="btn-dnd rounded px-2 py-1 text-sm"
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to delete "${item.title}"?`)) {
+                    onDelete(item.id);
+                  }
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          
+          <div className="collapsible-content" style={{ maxHeight: isExpanded ? "1000px" : "0px" }}>
+            <div className="card-content">
+              {item.content}
+            </div>
+            
+            {item.image && (
+              <div className="image-container">
+                <img src={item.image} alt={item.title} />
               </div>
             )}
+            
+            <div className="mt-3">
+              <div className="mb-2">
+                {item.tags && item.tags.map((tag, index) => (
+                  <span key={index} className="tag">
+                    {tag}
+                    <button 
+                      className="ml-1 text-red-400 hover:text-red-600"
+                      onClick={() => onTagRemove(item.id, index)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              
+              <form onSubmit={handleAddTag} className="flex gap-2">
+                <input
+                  type="text"
+                  className="dnd-input py-1 text-sm"
+                  placeholder="Add a tag..."
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                />
+                <button 
+                  type="submit"
+                  className="btn-dnd rounded px-2 py-1 text-sm"
+                >
+                  Add
+                </button>
+              </form>
+            </div>
           </div>
-          <ul className="space-y-2">
-            {items.map((item, index) => (
-              <li key={index} className="p-2 rounded border border-[#4a3f35] flex justify-between items-center">
-                {editingIndex === index ? (
-                  <React.Fragment>
-                    <input
-                      type="text"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      className="dnd-input"
-                    />
-                    <div className="flex gap-2">
-                      <button className="btn-dnd rounded" onClick={() => {
-                        updateItem(index, inputValue);
-                        setEditingIndex(null);
-                        setInputValue("");
-                      }}>Save</button>
-                      <button className="btn-dnd rounded" onClick={() => {
-                        setEditingIndex(null);
-                        setInputValue("");
-                      }}>Cancel</button>
-                    </div>
-                  </React.Fragment>
-                ) : (
-                  <React.Fragment>
-                    <span>{item}</span>
-                    <div className="flex gap-2">
-                      <button className="btn-dnd rounded" onClick={() => {
-                        setEditingIndex(index);
-                        setInputValue(item);
-                      }} title="Edit Item" aria-label="Edit Item">Edit</button>
-                      <button className="btn-dnd rounded" onClick={() => deleteItem(index)} title="Delete Item" aria-label="Delete Item">Delete</button>
-                    </div>
-                  </React.Fragment>
-                )}
-              </li>
-            ))}
-          </ul>
         </div>
       );
     }
 
     /**********************
-     * Lore, Campaign Notes, Shenanigans Components
+     * Campaign Item Form
      **********************/
-    function LoreSection() {
-      return (
-        <ItemTracker 
-          title="Lore" 
-          storageKey="loreItems" 
-          placeholder="Add a lore entry (e.g., major events, history, legends)..." 
-        />
-      );
-    }
-
-    function CampaignNotesSection() {
-      return (
-        <ItemTracker 
-          title="Campaign Notes" 
-          storageKey="campaignNotesItems" 
-          placeholder="Add a campaign note (e.g., recent events, NPC encounters)..." 
-        />
-      );
-    }
-
-    function ShenanigansSection() {
-      return (
-        <ItemTracker 
-          title="Shenanigans" 
-          storageKey="shenanigansItems" 
-          placeholder="Add a shenanigan (e.g., funny moments, unexpected mishaps)..." 
-        />
-      );
-    }
-
-    /**********************
-     * Quest Form Component
-     **********************/
-    function QuestForm({ initialQuest, onSubmit, onCancel, questStatuses, difficulties }) {
-      const [name, setName] = React.useState(initialQuest ? initialQuest.name : "");
-      const [description, setDescription] = React.useState(initialQuest ? initialQuest.description : "");
-      const [reward, setReward] = React.useState(initialQuest ? initialQuest.reward : "");
-      const [difficulty, setDifficulty] = React.useState(initialQuest ? initialQuest.difficulty : "Medium");
-      const [status, setStatus] = React.useState(initialQuest ? initialQuest.status : "Not Started");
-      const [notes, setNotes] = React.useState(initialQuest ? initialQuest.notes : "");
-      const [errors, setErrors] = React.useState({});
-
+    function CampaignItemForm({ item, onSave, onCancel }) {
+      const [title, setTitle] = React.useState(item ? item.title : "");
+      const [content, setContent] = React.useState(item ? item.content : "");
+      const [type, setType] = React.useState(item ? item.type : "Lore");
+      const [image, setImage] = React.useState(item ? item.image : null);
+      const [imagePreview, setImagePreview] = React.useState(item ? item.image : null);
+      
+      const typeOptions = ["Lore", "NPC", "Location", "Event", "Item", "Shenanigan", "Note"];
+      
       function handleSubmit(e) {
         e.preventDefault();
-        const newErrors = {};
-        if (!name.trim()) {
-          newErrors.name = "Quest name is required";
-        }
-        setErrors(newErrors);
-        if (Object.keys(newErrors).length > 0) {
+        if (!title.trim()) {
+          alert("Title is required");
           return;
         }
-        onSubmit({ name, description, reward, difficulty, status, notes });
+        
+        onSave({
+          id: item ? item.id : Date.now(),
+          title: title.trim(),
+          content: content.trim(),
+          type,
+          image,
+          tags: item ? item.tags || [] : [],
+          created: item ? item.created : new Date().toISOString(),
+          updated: new Date().toISOString()
+        });
       }
-
+      
+      function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            setImage(evt.target.result);
+            setImagePreview(evt.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+      
       return (
-        <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-amber-50 rounded shadow-lg border border-amber-700 dark:bg-gray-800 dark:border-gray-600">
+        <form onSubmit={handleSubmit} className="space-y-4 bg-gray-800 p-4 rounded-lg border border-gray-700">
           <div>
-            <label className="field-label required">Quest Name</label>
+            <label className="block text-amber-400 mb-1">Title</label>
             <input
               type="text"
               className="dnd-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter the name of this quest"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter title..."
               required
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
+          
           <div>
-            <label className="field-label">Quest Description</label>
-            <textarea
-              className="dnd-textarea"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the quest objectives and details"
-            />
+            <label className="block text-amber-400 mb-1">Type</label>
+            <div className="select-container">
+              <select 
+                className="dnd-select" 
+                value={type} 
+                onChange={(e) => setType(e.target.value)}
+              >
+                {typeOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <div className="select-arrow">▼</div>
+            </div>
           </div>
+          
           <div>
-            <label className="field-label">Reward</label>
+            <label className="block text-amber-400 mb-1">Content</label>
+            <div className="textarea-container">
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Enter content..."
+                className="dnd-input"
+              />
+              <div className="textarea-controls">
+                <span className="char-count">{content.length} characters</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-amber-400 mb-1">Image (optional)</label>
             <input
-              type="text"
-              className="dnd-input"
-              value={reward}
-              onChange={(e) => setReward(e.target.value)}
-              placeholder="Gold, items, influence, etc."
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="block text-amber-200 text-sm mb-2"
             />
+            {imagePreview && (
+              <div className="mt-2 relative">
+                <img src={imagePreview} alt="Preview" className="max-h-48 rounded" />
+                <button
+                  type="button"
+                  className="btn-dnd rounded absolute top-1 right-1 px-2 py-1 text-xs"
+                  onClick={() => {
+                    setImage(null);
+                    setImagePreview(null);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="field-label">Difficulty</label>
-              <select
-                className="dnd-select"
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
-              >
-                {difficulties.map((diff) => (
-                  <option key={diff} value={diff}>{diff}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="field-label">Status</label>
-              <select
-                className="dnd-select"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                {questStatuses.map((statusOption) => (
-                  <option key={statusOption} value={statusOption}>{statusOption}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="field-label">Quest Notes</label>
-            <textarea
-              className="dnd-textarea"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Keep track of progress, clues, important NPCs, etc."
-            />
-          </div>
-          <div className="flex gap-4 justify-end mt-4">
-            <button type="button" onClick={onCancel} className="btn-dnd rounded py-2 px-4">Cancel</button>
-            <button type="submit" className="btn-dnd rounded py-2 px-4">Save Quest</button>
+          
+          <div className="flex justify-end space-x-3 mt-4">
+            <button 
+              type="button" 
+              className="bg-gray-700 text-white rounded px-4 py-2 hover:bg-gray-600"
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="btn-dnd rounded px-4 py-2"
+            >
+              Save
+            </button>
           </div>
         </form>
       );
     }
 
     /**********************
-     * Quest Tracker Component
+     * Campaign Items Section
      **********************/
-    function QuestTracker() {
-      const questStatuses = ["Not Started", "In Progress", "Completed", "Failed"];
-      const difficulties = ["Easy", "Medium", "Hard", "Legendary"];
-      const [quests, setQuests] = React.useState(() => {
-        const saved = localStorage.getItem("quests");
+    function CampaignItemsSection() {
+      const [items, setItems] = React.useState(() => {
+        const saved = localStorage.getItem("campaignItems");
         return saved ? JSON.parse(saved) : [];
       });
-      const [formMode, setFormMode] = React.useState("none");
-      const [filter, setFilter] = React.useState("all");
-
+      
+      const [editingItem, setEditingItem] = React.useState(null);
+      const [isAdding, setIsAdding] = React.useState(false);
+      const [filter, setFilter] = React.useState("All");
+      const [searchQuery, setSearchQuery] = React.useState("");
+      
       React.useEffect(() => {
-        localStorage.setItem("quests", JSON.stringify(quests));
-      }, [quests]);
-
-      const addQuest = () => setFormMode("add");
-      const editQuest = (id) => setFormMode(id);
-      const cancelForm = () => setFormMode("none");
-
-      const handleFormSubmit = (formData) => {
-        if (formMode === "add") {
-          const newQuest = { id: Date.now(), ...formData };
-          setQuests([...quests, newQuest]);
-        } else if (typeof formMode === "number") {
-          setQuests(quests.map((q) => (q.id === formMode ? { ...q, ...formData } : q)));
+        localStorage.setItem("campaignItems", JSON.stringify(items));
+      }, [items]);
+      
+      function handleAddItem() {
+        setIsAdding(true);
+        setEditingItem(null);
+      }
+      
+      function handleEditItem(item) {
+        setEditingItem(item);
+        setIsAdding(false);
+      }
+      
+      function handleSaveItem(item) {
+        if (editingItem) {
+          setItems(items.map(i => i.id === item.id ? item : i));
+        } else {
+          setItems([...items, item]);
         }
-        setFormMode("none");
-      };
+        setEditingItem(null);
+        setIsAdding(false);
+      }
+      
+      function handleDeleteItem(id) {
+        setItems(items.filter(i => i.id !== id));
+      }
+      
+      function handleAddTag(itemId, tag) {
+        setItems(items.map(item => {
+          if (item.id === itemId) {
+            const tags = item.tags || [];
+            if (!tags.includes(tag)) {
+              return { ...item, tags: [...tags, tag] };
+            }
+          }
+          return item;
+        }));
+      }
+      
+      function handleRemoveTag(itemId, tagIndex) {
+        setItems(items.map(item => {
+          if (item.id === itemId && item.tags) {
+            const newTags = [...item.tags];
+            newTags.splice(tagIndex, 1);
+            return { ...item, tags: newTags };
+          }
+          return item;
+        }));
+      }
 
-      const removeQuest = (id) => {
-        setQuests(quests.filter((q) => q.id !== id));
-      };
-
-      const filteredQuests = filter === 'all'
-        ? quests
-        : quests.filter(q => q.status === filter);
-
+      // Filter and search items
+      const filteredItems = items.filter(item => {
+        const matchesFilter = filter === "All" || item.type === filter;
+        const matchesSearch = searchQuery === "" || 
+          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
+        
+        return matchesFilter && matchesSearch;
+      });
+      
       return (
-        <div className="scroll-container">
-          <h2 className="section-header">Quest Tracker</h2>
-          <div className="scroll-content">
-            <div className="flex flex-wrap justify-between items-center mb-4">
-              <button className="btn-dnd rounded py-2 px-4" onClick={addQuest}>
-                Add New Quest
+        <div className="content-panel">
+          <div className="panel-header">
+            <h2 className="panel-title">Campaign Journal</h2>
+            <button className="btn-dnd rounded" onClick={handleAddItem}>Add Entry</button>
+          </div>
+
+          <div className="mb-4 bg-gray-800 p-3 rounded-lg border border-amber-900">
+            <h3 className="text-amber-400 font-bold mb-1">Campaign Journal Features:</h3>
+            <ol className="list-decimal pl-5 text-sm text-amber-300">
+              <li className="mb-1">Record campaign lore, NPCs, locations and important events</li>
+              <li className="mb-1">Track shenanigans and memorable moments</li>
+              <li className="mb-1">Add images to entries for visual reference</li>
+              <li className="mb-1">Tag entries for easy searching and organization</li>
+              <li className="mb-1">Filter by entry type or search by keywords</li>
+              <li className="mb-1">Create an event timeline to track the story chronologically</li>
+              <li className="mb-1">Export journal data for use in AI prompts</li>
+            </ol>
+          </div>
+          
+          <div className="search-bar">
+            <input
+              type="text"
+              className="dnd-input search-input"
+              placeholder="Search journal..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button 
+              className="btn-dnd rounded py-2 px-4"
+              onClick={() => setSearchQuery("")}
+              disabled={!searchQuery}
+            >
+              Clear
+            </button>
+          </div>
+          
+          <div className="filters">
+            {["All", "Lore", "NPC", "Location", "Event", "Item", "Shenanigan", "Note"].map(type => (
+              <button
+                key={type}
+                className={`filter-btn ${filter === type ? "active" : ""}`}
+                onClick={() => setFilter(type)}
+              >
+                {type}
               </button>
-              <div className="flex items-center">
-                <label className="mr-2 font-bold text-sm">Filter:</label>
-                <select 
-                  className="dnd-select py-1 px-2" 
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                >
-                  <option value="all">All Quests</option>
-                  {questStatuses.map((statusOption) => (
-                    <option key={statusOption} value={statusOption}>{statusOption}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            {formMode === "add" && (
-              <div className="mb-6 border-2 border-amber-700 rounded p-1">
-                <QuestForm initialQuest={null} onSubmit={handleFormSubmit} onCancel={cancelForm} questStatuses={questStatuses} difficulties={difficulties} />
-              </div>
-            )}
-            {filteredQuests.length > 0 ? (
-              <div className="space-y-2">
-                {filteredQuests.map((quest) => (
-                  <div key={quest.id}>
-                    {formMode === quest.id ? (
-                      <QuestForm initialQuest={quest} onSubmit={handleFormSubmit} onCancel={cancelForm} questStatuses={questStatuses} difficulties={difficulties} />
-                    ) : (
-                      <div className={`quest-item mb-4 shadow border border-[#4a3f35] rounded difficulty-${quest.difficulty.toLowerCase()} status-${quest.status.toLowerCase().replace(/\s+/g, '')}`}>
-                        <div className="quest-header">
-                          <h3 className="font-bold">{quest.name}</h3>
-                          <div className="flex gap-2 items-center">
-                            <span className="text-sm px-2 py-1 bg-amber-100 rounded">{quest.status}</span>
-                            <button 
-                              type="button" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                editQuest(quest.id);
-                              }} 
-                              className="text-amber-800 hover:text-amber-600"
-                              title="Edit Quest"
-                              aria-label="Edit Quest"
-                            >
-                              ✎
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (window.confirm('Are you sure you want to delete this quest?')) {
-                                  removeQuest(quest.id);
-                                }
-                              }} 
-                              className="text-red-700 hover:text-red-500"
-                              title="Delete Quest"
-                              aria-label="Delete Quest"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                        <div className="quest-content p-4">
-                          {quest.description && (
-                            <div className="mb-3">
-                              <span className="quest-label">Description:</span>
-                              <div className="quest-value">{quest.description}</div>
-                            </div>
-                          )}
-                          {quest.reward && (
-                            <div className="mb-3">
-                              <span className="quest-label">Reward:</span>
-                              <div className="quest-value">{quest.reward}</div>
-                            </div>
-                          )}
-                          <div className="mb-3">
-                            <span className="quest-label">Difficulty:</span>
-                            <div className="quest-value">{quest.difficulty}</div>
-                          </div>
-                          {quest.notes && (
-                            <div>
-                              <span className="quest-label">Notes:</span>
-                              <div className="quest-value">{quest.notes}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-4 bg-amber-50 rounded border border-amber-200">
-                {filter === 'all'
-                  ? "No quests yet. Add one to get started!"
-                  : `No quests with status "${filter}". Add one or change the filter.`}
-              </div>
-            )}
-            <div className="text-xs text-right mt-4 text-amber-800">
-              Total quests: {quests.length} (Showing: {filteredQuests.length})
-            </div>
+            ))}
           </div>
-        </div>
-      );
-    }
-
-    /**********************
-     * Main App Component
-     **********************/
-    function App() {
-      return (
-        <div className="p-4 max-w-5xl mx-auto">
-          <h1 className="app-title">D&D Campaign Journal</h1>
-          <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
-            <DarkModeToggle />
-            <div className="flex flex-wrap gap-2">
-              <button className="btn-dnd rounded" onClick={backupLocalStorage}>Backup Data</button>
-              <button className="btn-dnd rounded" onClick={copyForPrompt}>Copy for Prompt</button>
-              <label className="btn-dnd rounded cursor-pointer text-sm flex items-center px-2">
-                Restore Data
-                <input type="file" accept=".json" onChange={(e) => restoreLocalStorage(e.target.files)} className="hidden" />
-              </label>
-            </div>
-          </div>
-          <LoreSection />
-          <CampaignNotesSection />
-          <ShenanigansSection />
-          <QuestTracker />
-          <footer className="text-center text-sm mt-8 mb-4 text-amber-800">
-            Made for D&D Masters and their adventurous parties
-          </footer>
-        </div>
-      );
-    }
-
-    ReactDOM.render(<App />, document.getElementById("root"));
-  </script>
-</body>
-</html>
+          
+          {isAdding || editingItem ? (
+            <CampaignItemForm 
+              item={editingItem}
+              onSave={handleSaveItem}
+              onCancel={() => {
+                setEditingItem(null);
+                setIsAdding(false);
+              }}
+            />
+          ) : (
+            <div className="space-y-2">
+              {filteredItems.length > 0 ? (
+                filteredItems.map(item => (
+                  <CampaignItem
+                    key={item.id}
+                    item={item}
+                    onEdit={handleEditItem}
+                    onDelete
